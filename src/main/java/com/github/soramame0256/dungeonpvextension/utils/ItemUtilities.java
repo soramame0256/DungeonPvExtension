@@ -50,6 +50,16 @@ public class ItemUtilities {
         });
         return is.get();
     }
+    public static boolean isScrap(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if(str.contains("解体アイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
+    }
     public static boolean isModded(ItemStack is){
         if (is.getTagCompound() != null && !is.getTagCompound().hasKey("dpeModded")){
             return false;
