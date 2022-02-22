@@ -109,15 +109,14 @@ public class EventListener {
             }
             ItemUtilities.changeLore(e.getItemStack(), newLore);
         }else if (inDP && ItemUtilities.isScrap(e.getToolTip()) && !ItemUtilities.isModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
-            List<String> newLore = new ArrayList<>();
             List<String> oldLore = new ArrayList<>();
+            List<String> newLore = new ArrayList<>();
             for (NBTBase a : e.getItemStack().getSubCompound("display").getTagList("Lore",8)){
                 oldLore.add(a.toString().substring(1,a.toString().length()-1));
             }
             for (String s : oldLore) {
                 if(clearColor(s).contains("解体アイテム")){
                     newLore.add(s);
-                    newLore.add("§0");
                     if(e.getItemStack().getTagCompound().hasKey("sellEssence")) {
                         newLore.add("§f解体時入手エッセンス: §a+" + e.getItemStack().getTagCompound().getInteger("sellEssence") * e.getItemStack().getCount() + " §7(@" + e.getItemStack().getTagCompound().getInteger("sellEssence") + ")");
                     }
