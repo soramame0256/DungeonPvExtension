@@ -1,7 +1,5 @@
 package com.github.soramame0256.dungeonpvextension.utils;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -37,6 +35,16 @@ public class ItemUtilities {
         is.set(false);
         lore.forEach(str ->{
             if (str.contains("武器アイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
+    }
+    public static boolean isArmor(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if (str.contains("防具アイテム")){
                 is.set(true);
             }
         });

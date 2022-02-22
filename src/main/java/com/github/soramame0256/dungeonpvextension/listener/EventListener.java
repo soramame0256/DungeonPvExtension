@@ -5,16 +5,11 @@ import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.gui.ForgeGuiFactory;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -22,10 +17,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.awt.event.HierarchyBoundsAdapter;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
@@ -67,6 +60,7 @@ public class EventListener {
         if (inDP && ItemUtilities.isWeapon(e.getToolTip()) && !ItemUtilities.isModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             List<String> newLore = new ArrayList<>();
             Boolean nextSub = false;
+            Boolean customLore = false; //+--------------------+から+--------------------+の間=true
             List<String> oldLore = new ArrayList<>();
             for (NBTBase a : e.getItemStack().getSubCompound("display").getTagList("Lore",8)){
                 oldLore.add(a.toString().substring(1,a.toString().length()-1));
@@ -78,7 +72,38 @@ public class EventListener {
                 } else if(s.contains("基礎攻撃力") && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("baseAtk")){
                     newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getInteger("baseAtk") + ")");
                     nextSub = true;
-                } else if (!s.equals(e.getItemStack().getDisplayName())){
+                } else if (clearColor(s).equals("+--------------------+")){
+                    if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
+                        newLore.add("§0");
+                        newLore.add(" §f解体入手エッセンス: §a+" + e.getItemStack().getTagCompound().getInteger("internalExp"));
+                        customLore = false;
+                    }else{
+                        customLore = true;
+                    }
+                    newLore.add(s);
+                } else if (!s.equals(e.getItemStack().getDisplayName())) {
+                    newLore.add(s);
+                }
+            }
+            ItemUtilities.changeLore(e.getItemStack(), newLore);
+        }else if (inDP && ItemUtilities.isArmor(e.getToolTip()) && !ItemUtilities.isModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
+            List<String> newLore = new ArrayList<>();
+            Boolean customLore = false; //+--------------------+から+--------------------+の間=true
+            List<String> oldLore = new ArrayList<>();
+            for (NBTBase a : e.getItemStack().getSubCompound("display").getTagList("Lore",8)){
+                oldLore.add(a.toString().substring(1,a.toString().length()-1));
+            }
+            for (String s : oldLore) {
+                if(clearColor(s).equals("+--------------------+")){
+                    if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
+                        newLore.add("§0");
+                        newLore.add(" §f解体入手エッセンス: §a+" + e.getItemStack().getTagCompound().getInteger("internalExp"));
+                        customLore = false;
+                    }else{
+                        customLore = true;
+                    }
+                    newLore.add(s);
+                }else{
                     newLore.add(s);
                 }
             }

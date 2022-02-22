@@ -2,7 +2,6 @@ package com.github.soramame0256.dungeonpvextension.utils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class HudUtilities {
