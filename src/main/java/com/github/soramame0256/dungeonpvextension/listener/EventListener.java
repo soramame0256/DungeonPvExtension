@@ -1,14 +1,13 @@
 package com.github.soramame0256.dungeonpvextension.listener;
 
 import com.github.soramame0256.dungeonpvextension.DungeonPvExtension;
+import com.github.soramame0256.dungeonpvextension.utils.ArrayUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.nbt.NBTBase;
-import net.minecraft.network.play.server.SPacketParticles;
 import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.scoreboard.Scoreboard;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -17,8 +16,6 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
-import net.minecraftforge.fml.common.network.internal.FMLProxyPacket;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -26,6 +23,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
@@ -41,13 +39,13 @@ public class EventListener {
     public void onUpdate(TickEvent.ClientTickEvent e){
         if(e.phase == TickEvent.Phase.END && Minecraft.getMinecraft().player != null ){
             ScoreObjective so = Minecraft.getMinecraft().player.getWorldScoreboard().getObjectiveInDisplaySlot(1);
-            if(isPotCooldown && inDP && so != null && so.getDisplayName().contains("Dungeon PvE")){
+            if(isPotCooldown && inDP && so != null && so.getDisplayName().contains("Dungeon PvE") && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){
                 if(potCooldownStarts.toEpochMilli() + POT_COOLDOWN < Instant.now().toEpochMilli()){
                     isPotCooldown = false;
                     System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + false);
                 }
-            }else if(so != null && isEnable){inDP = so.getDisplayName().contains("Dungeon PvE");
-            }else if(!isEnable){inDP = false;
+            }else if(so != null && isEnable && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = so.getDisplayName().contains("Dungeon PvE");
+            }else if(!isEnable || ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = false;
             }
         }
     }
