@@ -20,8 +20,8 @@ public class DungeonPvExtension {
 
     public static final String MOD_ID = "dungeonpvextension";
     public static final String MOD_NAME = "DungeonPvExtension";
-    public static final String VERSION = "1.0";
-    public static KeyBinding[] keyBindings = new KeyBinding[2];
+    public static final String VERSION = "1.0.2";
+    public static KeyBinding[] keyBindings = new KeyBinding[3];
     public static boolean inDP = false;
     public static boolean isEnable = true;
     /**
@@ -45,6 +45,7 @@ public class DungeonPvExtension {
     public void init(FMLInitializationEvent event) {
         keyBindings[0] = new KeyBinding("/die command", Keyboard.KEY_NONE, "DungeonPvExtension");
         keyBindings[1] = new KeyBinding("/item command", Keyboard.KEY_NONE, "DungeonPvExtension");
+        keyBindings[2] = new KeyBinding("Msg current HP", Keyboard.KEY_NONE, "DungeonPvExtension");
         for (KeyBinding binding : keyBindings) {
             ClientRegistry.registerKeyBinding(binding);
         }

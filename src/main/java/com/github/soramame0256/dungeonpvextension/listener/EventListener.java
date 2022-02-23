@@ -159,5 +159,8 @@ public class EventListener {
         if (keyBindings[1].isPressed()){
             Minecraft.getMinecraft().player.sendChatMessage("/item");
         }
+        if (keyBindings[2].isPressed()){
+            Minecraft.getMinecraft().player.sendChatMessage("♥ " + HudUtilities.getHealth() + "/" + HudUtilities.getMaxHealth());
+        }
     }
 }
