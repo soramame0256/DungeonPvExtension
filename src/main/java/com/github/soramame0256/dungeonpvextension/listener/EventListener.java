@@ -46,7 +46,9 @@ public class EventListener {
                     isPotCooldown = false;
                     System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + false);
                 }
-            }else if(so != null && isEnable){inDP = so.getDisplayName().contains("Dungeon PvE");}
+            }else if(so != null && isEnable){inDP = so.getDisplayName().contains("Dungeon PvE");
+            }else if(!isEnable){inDP = false;
+            }
         }
     }
     @SubscribeEvent(priority = EventPriority.HIGHEST)
