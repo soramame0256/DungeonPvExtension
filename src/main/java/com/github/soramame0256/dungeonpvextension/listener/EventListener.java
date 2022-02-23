@@ -41,7 +41,7 @@ public class EventListener {
     public void onUpdate(TickEvent.ClientTickEvent e){
         if(e.phase == TickEvent.Phase.END && Minecraft.getMinecraft().player != null ){
             ScoreObjective so = Minecraft.getMinecraft().player.getWorldScoreboard().getObjectiveInDisplaySlot(1);
-            if(isPotCooldown && inDP){
+            if(isPotCooldown && inDP && so != null && so.getDisplayName().contains("Dungeon PvE")){
                 if(potCooldownStarts.toEpochMilli() + POT_COOLDOWN < Instant.now().toEpochMilli()){
                     isPotCooldown = false;
                     System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + false);
