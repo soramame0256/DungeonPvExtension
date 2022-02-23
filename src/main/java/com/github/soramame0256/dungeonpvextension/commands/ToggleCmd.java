@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
+import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
 
 public class ToggleCmd extends DpeCmdBase {
 
@@ -22,7 +23,7 @@ public class ToggleCmd extends DpeCmdBase {
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-        inDP = !inDP;
-        Minecraft.getMinecraft().player.sendMessage(new TextComponentString("切り替えました: " + inDP));
+        isEnable = !isEnable;
+        Minecraft.getMinecraft().player.sendMessage(new TextComponentString("切り替えました: " + isEnable));
     }
 }

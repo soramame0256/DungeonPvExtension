@@ -23,6 +23,7 @@ public class DungeonPvExtension {
     public static final String VERSION = "1.2.1-SNAPSHOT";
     public static KeyBinding[] keyBindings = new KeyBinding[2];
     public static boolean inDP = false;
+    public static boolean isEnable = true;
     /**
      * This is the instance of your mod as created by Forge. It will never be null.
      */
