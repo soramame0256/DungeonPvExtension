@@ -26,6 +26,7 @@ import java.util.List;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
+import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
 
 public class EventListener {
@@ -81,7 +82,7 @@ public class EventListener {
                 } else if (clearColor(s).equals("+--------------------+")){
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
                         newLore.add("§0");
-                        newLore.add(" §f解体入手エッセンス: §a+" + e.getItemStack().getTagCompound().getInteger("internalExp"));
+                        newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
                         customLore = false;
                     }else{
                         customLore = true;
@@ -103,7 +104,7 @@ public class EventListener {
                 if(clearColor(s).equals("+--------------------+")){
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
                         newLore.add("§0");
-                        newLore.add(" §f解体入手エッセンス: §a+" + e.getItemStack().getTagCompound().getInteger("internalExp"));
+                        newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
                         customLore = false;
                     }else{
                         customLore = true;
@@ -124,10 +125,10 @@ public class EventListener {
                 if(clearColor(s).contains("解体アイテム")){
                     newLore.add(s);
                     if(e.getItemStack().getTagCompound().hasKey("sellEssence")) {
-                        newLore.add("§f解体時入手エッセンス: §a+" + e.getItemStack().getTagCompound().getInteger("sellEssence") * e.getItemStack().getCount() + " §7(@" + e.getItemStack().getTagCompound().getInteger("sellEssence") + ")");
+                        newLore.add("§f解体時入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("sellEssence") * e.getItemStack().getCount()) + " §7(@" + commaSeparate(e.getItemStack().getTagCompound().getInteger("sellEssence")) + ")");
                     }
                     if(e.getItemStack().getTagCompound().hasKey("sellGold")){
-                        newLore.add("§f解体時入手ゴールド: §e+" + e.getItemStack().getTagCompound().getInteger("sellGold")*e.getItemStack().getCount() + " §7(@" + e.getItemStack().getTagCompound().getInteger("sellGold") + ")");
+                        newLore.add("§f解体時入手ゴールド: §e+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("sellGold")*e.getItemStack().getCount()) + " §7(@" + commaSeparate(e.getItemStack().getTagCompound().getInteger("sellGold")) + ")");
                     }
                 }else{
                     newLore.add(s);

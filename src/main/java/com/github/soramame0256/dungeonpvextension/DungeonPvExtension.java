@@ -1,5 +1,6 @@
 package com.github.soramame0256.dungeonpvextension;
 
+import com.github.soramame0256.dungeonpvextension.commands.CommaSeparatingTestCmd;
 import com.github.soramame0256.dungeonpvextension.commands.ToggleCmd;
 import com.github.soramame0256.dungeonpvextension.listener.EventListener;
 import net.minecraft.client.settings.KeyBinding;
@@ -67,5 +68,7 @@ public class DungeonPvExtension {
         System.out.println("Generated EventListener Instance.");
         ClientCommandHandler.instance.registerCommand(new ToggleCmd());
         System.out.println("Registered ToggleCmd.");
+        ClientCommandHandler.instance.registerCommand(new CommaSeparatingTestCmd());
+        System.out.println("Registered CommaSeparatingTestCmd.");
     }
 }
