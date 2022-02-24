@@ -6,6 +6,7 @@ import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -19,8 +20,10 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.lang.reflect.Array;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
@@ -28,7 +31,7 @@ import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
-
+//round((1+0.2*(lvl^1.5))*amp*100
 public class EventListener {
     public static Instant potCooldownStarts;
     public static final long POT_COOLDOWN = 3000;
@@ -66,25 +69,23 @@ public class EventListener {
     public void onToolTipRender(ItemTooltipEvent e){
         if (inDP && ItemUtilities.isWeapon(e.getToolTip()) && !ItemUtilities.isModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             List<String> newLore = new ArrayList<>();
-            Boolean nextSub = false;
-            Boolean customLore = false; //+--------------------+から+--------------------+の間=true
-            List<String> oldLore = new ArrayList<>();
-            for (NBTBase a : e.getItemStack().getSubCompound("display").getTagList("Lore",8)){
-                oldLore.add(a.toString().substring(1,a.toString().length()-1));
-            }
+            boolean nextSub = false;
+            boolean customLore = false; //+--------------------+から+--------------------+の間=true
+            List<String> oldLore;
+            oldLore = Arrays.asList(ItemUtilities.getLore(e.getItemStack()));
             for (String s : oldLore) {
-                if(nextSub){
-                    newLore.add(s + " §7("  + e.getItemStack().getTagCompound().getInteger("baseSubStat") + ")");
+                if (nextSub) {
+                    newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getInteger("baseSubStat") + ")");
                     nextSub = false;
-                } else if(s.contains("基礎攻撃力") && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("baseAtk")){
+                } else if (s.contains("基礎攻撃力") && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("baseAtk")) {
                     newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getInteger("baseAtk") + ")");
                     nextSub = true;
-                } else if (clearColor(s).equals("+--------------------+")){
-                    if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
+                } else if (clearColor(s).equals("+--------------------+")) {
+                    if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")) {
                         newLore.add("§0");
                         newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
                         customLore = false;
-                    }else{
+                    } else {
                         customLore = true;
                     }
                     newLore.add(s);
@@ -92,14 +93,21 @@ public class EventListener {
                     newLore.add(s);
                 }
             }
+            if(ArrayUtilities.isStringContainsInList(ItemUtilities.getLore(e.getItemStack()), "強化費係数:")) {
+                Integer level = ItemUtilities.getItemLevel(e.getItemStack());
+                int maxLevel = ItemUtilities.getItemLevelMax(e.getItemStack());
+                Integer difference = maxLevel-level;
+                newLore.add("§7 必要コストリスト");
+                for(int i = level; i <= maxLevel; i++){
+                    newLore.add("§7 " + i + ": " + commaSeparate(Math.round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100)));
+                }
+            }
             ItemUtilities.changeLore(e.getItemStack(), newLore);
         }else if (inDP && ItemUtilities.isArmor(e.getToolTip()) && !ItemUtilities.isModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             List<String> newLore = new ArrayList<>();
-            Boolean customLore = false; //+--------------------+から+--------------------+の間=true
-            List<String> oldLore = new ArrayList<>();
-            for (NBTBase a : e.getItemStack().getSubCompound("display").getTagList("Lore",8)){
-                oldLore.add(a.toString().substring(1,a.toString().length()-1));
-            }
+            boolean customLore = false; //+--------------------+から+--------------------+の間=true
+            List<String> oldLore;
+            oldLore = Arrays.asList(ItemUtilities.getLore(e.getItemStack()));
             for (String s : oldLore) {
                 if(clearColor(s).equals("+--------------------+")){
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
@@ -116,11 +124,9 @@ public class EventListener {
             }
             ItemUtilities.changeLore(e.getItemStack(), newLore);
         }else if (inDP && ItemUtilities.isScrap(e.getToolTip()) && !ItemUtilities.isModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
-            List<String> oldLore = new ArrayList<>();
             List<String> newLore = new ArrayList<>();
-            for (NBTBase a : e.getItemStack().getSubCompound("display").getTagList("Lore",8)){
-                oldLore.add(a.toString().substring(1,a.toString().length()-1));
-            }
+            List<String> oldLore;
+            oldLore = Arrays.asList(ItemUtilities.getLore(e.getItemStack()));
             for (String s : oldLore) {
                 if(clearColor(s).contains("解体アイテム")){
                     newLore.add(s);

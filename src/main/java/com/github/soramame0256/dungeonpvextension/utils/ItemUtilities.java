@@ -1,34 +1,38 @@
 package com.github.soramame0256.dungeonpvextension.utils;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
 
 public class ItemUtilities {
     public static void changeName(ItemStack i, String s){
         NBTTagCompound NBT1 = i.getTagCompound();
         NBTTagCompound NBT2 = i.getSubCompound("display");
-        NBT2.setTag("Name", new NBTTagString(s));
-        NBT1.setTag("display", NBT2);
-        i.setTagCompound(NBT1);
+        if(NBT1 != null && NBT2 != null) {
+            NBT2.setTag("Name", new NBTTagString(s));
+            NBT1.setTag("display", NBT2);
+            i.setTagCompound(NBT1);
+        }
     }
     public static void changeLore(ItemStack i, List<String> lore){
         NBTTagCompound NBT1 = i.getTagCompound();
         NBTTagCompound NBT2 = i.getSubCompound("display");
         NBTTagList tag = new NBTTagList();
         lore.forEach(s -> tag.appendTag(new NBTTagString(s)));
-        try {
+        if(NBT1 != null && NBT2 != null) {
             NBT2.setTag("Lore", tag);
             NBT1.setTag("display", NBT2);
-        }catch(NullPointerException e){
-            return;
+            NBT1.setBoolean("dpeModded", true);
+            i.setTagCompound(NBT1);
         }
-        NBT1.setBoolean("dpeModded", true);
-        i.setTagCompound(NBT1);
     }
     public static boolean isWeapon(List<String> lore){
         AtomicReference<Boolean> is = new AtomicReference<>();
@@ -60,10 +64,42 @@ public class ItemUtilities {
         });
         return is.get();
     }
+    @SuppressWarnings(value = "all")
     public static boolean isModded(ItemStack is){
         if (is.getTagCompound() != null && !is.getTagCompound().hasKey("dpeModded")){
             return false;
         }
         return is.getTagCompound().getBoolean("dpeModded");
+    }
+    public static String[] getLore(ItemStack is){
+        List<String> lore = new ArrayList<>();
+        NBTTagCompound displayNBT = is.getSubCompound("display");
+        if(displayNBT != null && displayNBT.hasKey("Lore")) {
+            for (NBTBase a : displayNBT.getTagList("Lore", 8)) {
+                lore.add(a.toString().substring(1, a.toString().length() - 1));
+            }
+        }else{
+            lore.add("");
+            return lore.toArray(new String[0]);
+        }
+        return lore.toArray(new String[0]);
+    }
+    public static Integer getItemLevel(ItemStack is){
+        String str = "0";
+        for (String s : getLore(is)) {
+            if (clearColor(s).contains("❃ 強化レベル:")){
+                str = clearColor(s).split(" ")[3];
+            }
+        }
+        return Integer.parseInt(str);
+    }
+    public static Integer getItemLevelMax(ItemStack is){
+        String str = "0";
+        for (String s : getLore(is)) {
+            if (clearColor(s).contains("❃ 強化レベル:")){
+                str = clearColor(s).split(" ")[5];
+            }
+        }
+        return Integer.parseInt(str);
     }
 }

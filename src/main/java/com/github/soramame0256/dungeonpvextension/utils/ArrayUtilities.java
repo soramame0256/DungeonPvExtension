@@ -9,4 +9,12 @@ public class ArrayUtilities {
         }
         return false;
     }
+    public static boolean isStringContainsInList(String[] alpha, String beta){
+        for (String o : alpha) {
+            if (o.contains(beta)){
+                return true;
+            }
+        }
+        return false;
+    }
 }
