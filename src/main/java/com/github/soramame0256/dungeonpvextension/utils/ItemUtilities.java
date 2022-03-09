@@ -37,6 +37,18 @@ public class ItemUtilities {
             i.setTagCompound(NBT1);
         }
     }
+    public static String[] getNonModdedLore(ItemStack i){
+        List<String> lore = new ArrayList<>();
+        if (i.getTagCompound() != null && i.getTagCompound().hasKey("dpeExtraAttributes") && i.getSubCompound("dpeExtraAttributes").hasKey("lore")){
+            NBTTagCompound dpeExtraAttributes = i.getSubCompound("dpeExtraAttributes");
+            for (NBTBase a : dpeExtraAttributes.getTagList("lore", 8)) {
+                lore.add(a.toString().substring(1, a.toString().length() - 1));
+            }
+            return lore.toArray(new String[0]);
+        }else{
+            return getLore(i);
+        }
+    }
     public static boolean isWeapon(List<String> lore){
         AtomicReference<Boolean> is = new AtomicReference<>();
         is.set(false);
@@ -88,6 +100,9 @@ public class ItemUtilities {
     public static String[] getLore(ItemStack is){
         List<String> lore = new ArrayList<>();
         NBTTagCompound displayNBT = is.getSubCompound("display");
+        NBTTagCompound NBT1 = is.getTagCompound();
+        NBTTagCompound NBT2 = new NBTTagCompound();
+        NBTTagList tag = new NBTTagList();
         if(displayNBT != null && displayNBT.hasKey("Lore")) {
             for (NBTBase a : displayNBT.getTagList("Lore", 8)) {
                 lore.add(a.toString().substring(1, a.toString().length() - 1));
@@ -95,6 +110,13 @@ public class ItemUtilities {
         }else{
             lore.add("");
             return lore.toArray(new String[0]);
+        }
+        lore.forEach(s -> tag.appendTag(new NBTTagString(s)));
+        if(NBT1 != null) {
+            NBT2.setTag("lore", tag);
+            NBT1.setTag("dpeExtraAttributes", NBT2);
+            setTempModded(is);
+            is.setTagCompound(NBT1);
         }
         return lore.toArray(new String[0]);
     }
