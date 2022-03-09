@@ -97,6 +97,11 @@ public class ItemUtilities {
             is.getTagCompound().setLong("dpeTempModded", Instant.now().getEpochSecond());
         }
     }
+    public static void setModded(ItemStack is){
+        if(is.getTagCompound() != null) {
+            is.getTagCompound().setBoolean("dpeModded",true);
+        }
+    }
     public static String[] getLore(ItemStack is){
         List<String> lore = new ArrayList<>();
         NBTTagCompound displayNBT = is.getSubCompound("display");
