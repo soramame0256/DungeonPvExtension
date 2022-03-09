@@ -12,7 +12,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 
 group = 'com.github.soramame0256'
-version = '1.0.4-beta.2'
+version = '1.0.4'
 
 tasks.withType(Jar) {compileJava.options.encoding = 'UTF-8'}
 

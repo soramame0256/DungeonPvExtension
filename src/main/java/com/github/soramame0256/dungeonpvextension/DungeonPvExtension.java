@@ -1,8 +1,10 @@
 package com.github.soramame0256.dungeonpvextension;
 
+import com.github.soramame0256.dungeonpvextension.commands.ChanceCalcCmd;
 import com.github.soramame0256.dungeonpvextension.commands.CommaSeparatingTestCmd;
 import com.github.soramame0256.dungeonpvextension.commands.ToggleCmd;
 import com.github.soramame0256.dungeonpvextension.listener.EventListener;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.config.Config;
@@ -24,10 +26,11 @@ public class DungeonPvExtension {
 
     public static final String MOD_ID = "dungeonpvextension";
     public static final String MOD_NAME = "DungeonPvExtension";
-    public static final String VERSION = "1.0.4-beta.2";
+    public static final String VERSION = "1.0.4";
     public static KeyBinding[] keyBindings = new KeyBinding[3];
     public static boolean inDP = false;
     public static boolean isEnable = true;
+    public static Minecraft mc;
     /**
      * This is the instance of your mod as created by Forge. It will never be null.
      */
@@ -50,6 +53,7 @@ public class DungeonPvExtension {
      */
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        mc = Minecraft.getMinecraft();
         keyBindings[0] = new KeyBinding("/die command", Keyboard.KEY_NONE, "DungeonPvExtension");
         keyBindings[1] = new KeyBinding("/item command", Keyboard.KEY_NONE, "DungeonPvExtension");
         keyBindings[2] = new KeyBinding("Msg current HP", Keyboard.KEY_NONE, "DungeonPvExtension");
@@ -70,5 +74,6 @@ public class DungeonPvExtension {
         System.out.println("Registered ToggleCmd.");
         ClientCommandHandler.instance.registerCommand(new CommaSeparatingTestCmd());
         System.out.println("Registered CommaSeparatingTestCmd.");
+        ClientCommandHandler.instance.registerCommand(new ChanceCalcCmd());
     }
 }

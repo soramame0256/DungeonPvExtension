@@ -6,7 +6,9 @@ public enum Character {
     PARPARA("パーパラ", Element.WATER),
     RAZER("レーザー", Element.THUNDER),
     RAIKA("ライカ", Element.THUNDER),
-    GRAY("グレー", Element.FIRE);
+    GRAY("グレー", Element.FIRE),
+    NONE("",Element.WIND)
+    ;
     public String name;
     public Element element;
     Character(String name, Element element){

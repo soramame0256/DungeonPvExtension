@@ -1,11 +1,13 @@
 package com.github.soramame0256.dungeonpvextension.utils;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,6 +21,7 @@ public class ItemUtilities {
         if(NBT1 != null && NBT2 != null) {
             NBT2.setTag("Name", new NBTTagString(s));
             NBT1.setTag("display", NBT2);
+            setTempModded(i);
             i.setTagCompound(NBT1);
         }
     }
@@ -30,7 +33,7 @@ public class ItemUtilities {
         if(NBT1 != null && NBT2 != null) {
             NBT2.setTag("Lore", tag);
             NBT1.setTag("display", NBT2);
-            NBT1.setBoolean("dpeModded", true);
+            setTempModded(i);
             i.setTagCompound(NBT1);
         }
     }
@@ -70,6 +73,17 @@ public class ItemUtilities {
             return false;
         }
         return is.getTagCompound().getBoolean("dpeModded");
+    }
+    @SuppressWarnings(value = "all")
+    public static boolean isTempModded(ItemStack is){
+        if (is.getTagCompound() != null && !is.getTagCompound().hasKey("dpeTempModded")){
+            return false;
+        } else return is.getTagCompound().getLong("dpeTempModded") + 3 > Instant.now().getEpochSecond();
+    }
+    public static void setTempModded(ItemStack is){
+        if(is.getTagCompound() != null) {
+            is.getTagCompound().setLong("dpeTempModded", Instant.now().getEpochSecond());
+        }
     }
     public static String[] getLore(ItemStack is){
         List<String> lore = new ArrayList<>();
