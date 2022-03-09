@@ -94,18 +94,17 @@ public class EventListener {
                     newLore.add(s);
                 }
             }
-            if(ArrayUtilities.isStringContainsInList(ItemUtilities.getNonModdedLore(e.getItemStack()), "強化費係数:") && !ItemUtilities.isModded(e.getItemStack())) {
+            if(ArrayUtilities.isStringContainsInList(e.getToolTip(), "強化費係数:")) {
                 Integer level = ItemUtilities.getItemLevel(e.getItemStack());
                 int maxLevel = ItemUtilities.getItemLevelMax(e.getItemStack());
                 newLore.add("§7 必要コストリスト");
-                Long totalCost = 0L;
+                long totalCost = 0L;
                 for(int i = level; i < maxLevel; i++){
-                    Long cost = Math.round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100);
+                    long cost = Math.round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100);
                     newLore.add("§7 " + i + ": " + commaSeparate(cost));
                     totalCost += cost;
                 }
                 newLore.add("§7 合計: " + commaSeparate(totalCost));
-                ItemUtilities.setModded(e.getItemStack());
             }
             ItemUtilities.changeLore(e.getItemStack(), newLore);
         }else if (inDP && ItemUtilities.isArmor(e.getToolTip()) && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
