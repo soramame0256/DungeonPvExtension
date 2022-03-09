@@ -127,7 +127,7 @@ public class ItemUtilities {
     }
     public static Integer getItemLevel(ItemStack is){
         String str = "0";
-        for (String s : getLore(is)) {
+        for (String s : getNonModdedLore(is)) {
             if (clearColor(s).contains("❃ 強化レベル:")){
                 str = clearColor(s).split(" ")[3];
             }
@@ -136,7 +136,7 @@ public class ItemUtilities {
     }
     public static Integer getItemLevelMax(ItemStack is){
         String str = "0";
-        for (String s : getLore(is)) {
+        for (String s : getNonModdedLore(is)) {
             if (clearColor(s).contains("❃ 強化レベル:")){
                 str = clearColor(s).split(" ")[5];
             }

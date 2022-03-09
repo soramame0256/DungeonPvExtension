@@ -14,7 +14,7 @@ public class CurrentSelection {
     private static Double chargeEff = 0d;
     public static void setAll(ItemStack i){
         int line = 0;
-        for(String s : ItemUtilities.getLore(i)) {
+        for(String s : ItemUtilities.getNonModdedLore(i)) {
             line++;
             if (line == 1) {
                 try {
