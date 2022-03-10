@@ -36,6 +36,7 @@ public class EventListener {
     public static final long POT_COOLDOWN = 3000;
     public static Boolean isPotCooldown = false;
     private static ResourceLocation BAR = new ResourceLocation("minecraft", "textures/gui/bars.png");
+    private static final double UPGRADE_CONSTANT = 0.15d;
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -97,11 +98,14 @@ public class EventListener {
             if(ArrayUtilities.isStringContainsInList(e.getToolTip(), "強化費係数:")) {
                 Integer level = ItemUtilities.getItemLevel(e.getItemStack());
                 int maxLevel = ItemUtilities.getItemLevelMax(e.getItemStack());
-                newLore.add("§7 必要コストリスト");
+                newLore.add("§7 必要コスト/メイン成長値リスト");
                 long totalCost = 0L;
+                double baseAtk = e.getItemStack().getTagCompound().getInteger("baseAtk");
+                double baseSubStat = e.getItemStack().getTagCompound().getInteger("baseSubStat");
                 for(int i = level; i < maxLevel; i++){
                     long cost = Math.round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100);
-                    newLore.add("§7 " + i + ": " + commaSeparate(cost));
+                    int nextLevel = i+1;
+                    newLore.add("§7 " + i + ": " + commaSeparate(cost) + " | " + Math.round(baseAtk*(1+UPGRADE_CONSTANT*nextLevel)));
                     totalCost += cost;
                 }
                 newLore.add("§7 合計: " + commaSeparate(totalCost));
