@@ -30,6 +30,7 @@ import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
+import static java.lang.Math.round;
 
 public class EventListener {
     public static Instant potCooldownStarts;
@@ -86,6 +87,7 @@ public class EventListener {
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")) {
                         newLore.add("§0");
                         newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
+                        newLore.add(" §f解体入手ゴールド: §a+" + commaSeparate(round(e.getItemStack().getTagCompound().getInteger("internalExp")*0.6)));
                         customLore = false;
                     } else {
                         customLore = true;
@@ -103,9 +105,9 @@ public class EventListener {
                 double baseAtk = e.getItemStack().getTagCompound().getInteger("baseAtk");
                 double baseSubStat = e.getItemStack().getTagCompound().getInteger("baseSubStat");
                 for(int i = level; i < maxLevel; i++){
-                    long cost = Math.round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100);
+                    long cost = round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100);
                     int nextLevel = i+1;
-                    newLore.add("§7 " + i + ": " + commaSeparate(cost) + " | " + Math.round(baseAtk*(1+UPGRADE_CONSTANT*nextLevel)));
+                    newLore.add("§7 " + i + ": " + commaSeparate(cost) + " | " + round(baseAtk*(1+UPGRADE_CONSTANT*nextLevel)));
                     totalCost += cost;
                 }
                 newLore.add("§7 合計: " + commaSeparate(totalCost));
@@ -121,6 +123,7 @@ public class EventListener {
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
                         newLore.add("§0");
                         newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
+                        newLore.add(" §f解体入手ゴールド: §a+" + commaSeparate(round(e.getItemStack().getTagCompound().getInteger("internalExp")*0.6)));
                         customLore = false;
                     }else{
                         customLore = true;
