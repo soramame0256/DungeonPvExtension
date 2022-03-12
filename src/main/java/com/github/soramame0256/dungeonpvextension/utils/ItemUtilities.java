@@ -125,7 +125,7 @@ public class ItemUtilities {
         }
         return lore.toArray(new String[0]);
     }
-    public static Integer getItemLevel(ItemStack is){
+    public static Integer getWeaponLevel(ItemStack is){
         String str = "0";
         for (String s : getNonModdedLore(is)) {
             if (clearColor(s).contains("❃ 強化レベル:")){
@@ -134,7 +134,7 @@ public class ItemUtilities {
         }
         return Integer.parseInt(str);
     }
-    public static Integer getItemLevelMax(ItemStack is){
+    public static Integer getWeaponLevelMax(ItemStack is){
         String str = "0";
         for (String s : getNonModdedLore(is)) {
             if (clearColor(s).contains("❃ 強化レベル:")){
@@ -142,5 +142,29 @@ public class ItemUtilities {
             }
         }
         return Integer.parseInt(str);
+    }
+    public static Integer getArmorLevel(ItemStack is){
+        String str = "0";
+        for (String s : getNonModdedLore(is)) {
+            if (clearColor(s).contains("❃ 強化値:")){
+                str = clearColor(s).split(" ")[3].replace("+","");
+            }
+        }
+        return Integer.parseInt(str);
+    }
+    public static Integer getArmorLevelMax(ItemStack is){
+        for (String s : getNonModdedLore(is)) {
+            if (clearColor(s).contains("防具アイテム")){
+                String r = s.split(" ")[1];
+                if(r.contains("§b")){
+                    return 12;
+                }else if(r.contains("§d")){
+                    return 16;
+                }else if(r.contains("§6")){
+                    return 20;
+                }
+            }
+        }
+        return 0;
     }
 }

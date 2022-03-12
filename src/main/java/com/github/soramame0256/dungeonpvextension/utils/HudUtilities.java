@@ -2,10 +2,13 @@ package com.github.soramame0256.dungeonpvextension.utils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.IInventory;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class HudUtilities {
-
+    private static final Minecraft mc = Minecraft.getMinecraft();
     public static Integer getHealth() {
         String s = getActionbar();
         if (!getActionbar().contains(" ")){
@@ -42,6 +45,14 @@ public class HudUtilities {
         try {
             return (String) ReflectionHelper.findField(GuiIngame.class, "displayedTitle", "field_175201_x").get(Minecraft.getMinecraft().ingameGUI);
         } catch (IllegalAccessException ignored) {}
+        return "";
+    }
+    public static String getCurrentGuiTitle(){
+        Container container = mc.player.openContainer;
+        if(container instanceof ContainerChest){
+            IInventory iInventory = ((ContainerChest) container).getLowerChestInventory();
+            return iInventory.getDisplayName().getUnformattedComponentText();
+        }
         return "";
     }
     public static String getCurrentSubTitle(){

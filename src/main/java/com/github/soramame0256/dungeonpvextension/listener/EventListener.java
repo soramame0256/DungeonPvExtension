@@ -37,7 +37,8 @@ public class EventListener {
     public static final long POT_COOLDOWN = 3000;
     public static Boolean isPotCooldown = false;
     private static ResourceLocation BAR = new ResourceLocation("minecraft", "textures/gui/bars.png");
-    private static final double UPGRADE_CONSTANT = 0.15d;
+    private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
+    private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -98,8 +99,8 @@ public class EventListener {
                 }
             }
             if(ArrayUtilities.isStringContainsInList(e.getToolTip(), "強化費係数:")) {
-                Integer level = ItemUtilities.getItemLevel(e.getItemStack());
-                int maxLevel = ItemUtilities.getItemLevelMax(e.getItemStack());
+                Integer level = ItemUtilities.getWeaponLevel(e.getItemStack());
+                int maxLevel = ItemUtilities.getWeaponLevelMax(e.getItemStack());
                 newLore.add("§7 必要コスト/メイン成長値リスト");
                 long totalCost = 0L;
                 double baseAtk = e.getItemStack().getTagCompound().getInteger("baseAtk");
@@ -107,7 +108,7 @@ public class EventListener {
                 for(int i = level; i < maxLevel; i++){
                     long cost = round((1+0.2*(Math.pow(i, 1.5)))*e.getItemStack().getTagCompound().getInteger("amp")*100);
                     int nextLevel = i+1;
-                    newLore.add("§7 " + i + ": " + commaSeparate(cost) + " | " + round(baseAtk*(1+UPGRADE_CONSTANT*nextLevel)));
+                    newLore.add("§7 " + nextLevel + ": " + commaSeparate(cost) + " | " + round(baseAtk*(1+WEAPON_UPGRADE_CONSTANT*nextLevel)));
                     totalCost += cost;
                 }
                 newLore.add("§7 合計: " + commaSeparate(totalCost));
@@ -128,10 +129,22 @@ public class EventListener {
                     }else{
                         customLore = true;
                     }
-                    newLore.add(s);
-                }else{
-                    newLore.add(s);
                 }
+                newLore.add(s);
+            }
+            if(HudUtilities.getCurrentGuiTitle().equals("防具強化")){
+                Integer level = ItemUtilities.getArmorLevel(e.getItemStack());
+                int maxLevel = ItemUtilities.getArmorLevelMax(e.getItemStack());
+                long totalCost = 0L;
+                double baseStat = e.getItemStack().getTagCompound().getInteger("mainStat");
+                newLore.add("§7必要コスト/メイン成長値リスト");
+                for(int i = level; i < maxLevel; i++){
+                    long cost = round(100*(1+0.2*(Math.pow(i, 2)))*maxLevel*0.25);
+                    int nextLevel = i+1;
+                    newLore.add("§7" + nextLevel + ": " + commaSeparate(cost) + " | " + round(baseStat*(1+ARMOR_UPGRADE_CONSTANT*nextLevel)));
+                    totalCost += cost;
+                }
+                newLore.add("§7合計: " + commaSeparate(totalCost));
             }
             ItemUtilities.changeLore(e.getItemStack(), newLore);
         }else if (inDP && ItemUtilities.isScrap(e.getToolTip()) && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
