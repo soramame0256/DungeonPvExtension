@@ -47,18 +47,18 @@ public class HudUtilities {
         } catch (IllegalAccessException ignored) {}
         return "";
     }
+    public static String getCurrentSubTitle(){
+        try {
+            return (String) ReflectionHelper.findField(GuiIngame.class, "displayedSubTitle", "field_175200_y").get(Minecraft.getMinecraft().ingameGUI);
+        } catch (IllegalAccessException ignored) {}
+        return "";
+    }
     public static String getCurrentGuiTitle(){
         Container container = mc.player.openContainer;
         if(container instanceof ContainerChest){
             IInventory iInventory = ((ContainerChest) container).getLowerChestInventory();
             return iInventory.getDisplayName().getUnformattedComponentText();
         }
-        return "";
-    }
-    public static String getCurrentSubTitle(){
-        try {
-            return (String) ReflectionHelper.findField(GuiIngame.class, "displayedSubTitle", "field_175200_y").get(Minecraft.getMinecraft().ingameGUI);
-        } catch (IllegalAccessException ignored) {}
         return "";
     }
 }
