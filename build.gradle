@@ -2,17 +2,20 @@ buildscript {
     repositories {
         // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
         maven { url = 'https://maven.minecraftforge.net' }
+        //maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        //classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
+//apply plugin: 'org.spongepowered.mixin'
 
 group = 'com.github.soramame0256'
-version = '1.0.6'
+version = "${version}"
 
 tasks.withType(Jar) {compileJava.options.encoding = 'UTF-8'}
 
@@ -116,6 +119,8 @@ dependencies {
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+    implementation 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
@@ -132,5 +137,9 @@ jar {
         ])
     }
 }
-
+//mixin {
+//    add sourceSets.main, "${mixin_id}.refmap.json"
+//
+//    config "${mixin_id}.mixins.json"
+//}
 jar.finalizedBy('reobfJar')

@@ -2,7 +2,6 @@ package com.github.soramame0256.dungeonpvextension.listener;
 
 import com.github.soramame0256.dungeonpvextension.DungeonPvExtension;
 import com.github.soramame0256.dungeonpvextension.utils.ArrayUtilities;
-import com.github.soramame0256.dungeonpvextension.utils.CurrentSelection;
 import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import net.minecraft.client.Minecraft;
@@ -13,7 +12,6 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -25,6 +23,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
@@ -37,6 +36,7 @@ public class EventListener {
     public static Instant potCooldownStarts;
     public static final long POT_COOLDOWN = 3000;
     public static Boolean isPotCooldown = false;
+    public static List<HeavenBombTimer> bombTimers = new ArrayList<>();
     private static ResourceLocation BAR = new ResourceLocation("minecraft", "textures/gui/bars.png");
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
     private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
@@ -52,6 +52,9 @@ public class EventListener {
                     isPotCooldown = false;
                     System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + false);
                 }
+                if(bombTimers.size() != 0){
+                    bombTimers.forEach(HeavenBombTimer::update);
+                }
             }else if(so != null && isEnable && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = so.getDisplayName().contains("Dungeon PvE");
             }else if(!isEnable || ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = false;
             }
@@ -66,7 +69,12 @@ public class EventListener {
                 potCooldownStarts = Instant.now();
                 isPotCooldown = true;
                 System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + true);
+            } else if (chatMsg.equals("60秒以内に爆弾を解除(討伐)せよ！")){
+                bombTimers.add(new HeavenBombTimer(Instant.now()));
+            } else if (chatMsg.equals("爆弾の解除に成功した！")){
+                bombTimers.get(0).delete();
             }
+
         }
     }
 
@@ -173,13 +181,18 @@ public class EventListener {
     @SubscribeEvent
     public void onActionBarUpdate(RenderGameOverlayEvent e){
         String second;
+        AtomicReference<String> actionBarAddText = new AtomicReference<>("");
         if(inDP && isPotCooldown && !HudUtilities.getActionbar().contains("⌛")) {
             second = String.valueOf(POT_COOLDOWN/1000 - (Instant.now().getEpochSecond() - potCooldownStarts.getEpochSecond()));
             if (second.length() == 1) {
                 second = "0" + second;
+                actionBarAddText.set(actionBarAddText.get().concat("§7 |§6 ⌛ " + second));
             }
-            Minecraft.getMinecraft().ingameGUI.setOverlayMessage(HudUtilities.getActionbar() + "§7 |§6 ⌛ " + second,false);
         }
+        if (inDP && bombTimers.size() != 0 && !HudUtilities.getActionbar().contains("☢")) {
+            bombTimers.forEach(heavenBombTimer -> actionBarAddText.set(heavenBombTimer.getConcatSecond(actionBarAddText.get())));
+        }
+        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(HudUtilities.getActionbar() + actionBarAddText.get(),false);
     }
     @SideOnly(Side.CLIENT)
     @SubscribeEvent(priority = EventPriority.NORMAL,receiveCanceled = true)

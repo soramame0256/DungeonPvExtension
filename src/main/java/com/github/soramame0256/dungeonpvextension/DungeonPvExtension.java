@@ -2,6 +2,7 @@ package com.github.soramame0256.dungeonpvextension;
 
 import com.github.soramame0256.dungeonpvextension.commands.ChanceCalcCmd;
 import com.github.soramame0256.dungeonpvextension.commands.CommaSeparatingTestCmd;
+import com.github.soramame0256.dungeonpvextension.commands.TestMsgSendCmd;
 import com.github.soramame0256.dungeonpvextension.commands.ToggleCmd;
 import com.github.soramame0256.dungeonpvextension.listener.EventListener;
 import net.minecraft.client.Minecraft;
@@ -75,5 +76,6 @@ public class DungeonPvExtension {
         ClientCommandHandler.instance.registerCommand(new CommaSeparatingTestCmd());
         System.out.println("Registered CommaSeparatingTestCmd.");
         ClientCommandHandler.instance.registerCommand(new ChanceCalcCmd());
+        ClientCommandHandler.instance.registerCommand(new TestMsgSendCmd());
     }
 }

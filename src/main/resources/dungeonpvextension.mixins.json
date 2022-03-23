@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.github.soramame0256.dungeonpvextension.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "dungeonpvextension.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "minVersion": "0.8"
+}
