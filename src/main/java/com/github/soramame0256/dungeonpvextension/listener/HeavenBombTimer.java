@@ -8,10 +8,11 @@ public class HeavenBombTimer {
     public HeavenBombTimer(Instant starts){
         this.bombTimerStarts = starts;
     }
-    public void update(){
+    public boolean update(){
         if(bombTimerStarts.toEpochMilli() + TIMER_MIN_SEC < Instant.now().toEpochMilli()){
-            EventListener.bombTimers.remove(this);
+            return true;
         }
+        return false;
     }
     public void delete(){
         EventListener.bombTimers.remove(this);

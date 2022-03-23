@@ -53,7 +53,15 @@ public class EventListener {
                     System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + false);
                 }
                 if(bombTimers.size() != 0){
-                    bombTimers.forEach(HeavenBombTimer::update);
+                    AtomicReference<Integer> amount = new AtomicReference<>(0);
+                    bombTimers.forEach(heavenBombTimer -> {
+                        if (heavenBombTimer.update()){
+                            amount.set(amount.get()+1);
+                        }
+                    });
+                    if (amount.get() > 0) {
+                        bombTimers.subList(0, amount.get()).clear();
+                    }
                 }
             }else if(so != null && isEnable && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = so.getDisplayName().contains("Dungeon PvE");
             }else if(!isEnable || ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = false;
