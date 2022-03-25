@@ -6,10 +6,13 @@ import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
@@ -36,13 +40,14 @@ public class EventListener {
     public static Instant potCooldownStarts;
     public static final long POT_COOLDOWN = 3000;
     public static Boolean isPotCooldown = false;
-    public static List<HeavenBombTimer> bombTimers = new ArrayList<>();
+    public static List<BombTimer> bombTimers = new ArrayList<>();
     private static ResourceLocation BAR = new ResourceLocation("minecraft", "textures/gui/bars.png");
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
     private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
     }
+
     @SubscribeEvent
     public void onUpdate(TickEvent.ClientTickEvent e){
         if(e.phase == TickEvent.Phase.END && Minecraft.getMinecraft().player != null ){
@@ -54,8 +59,8 @@ public class EventListener {
                 }
                 if(bombTimers.size() != 0){
                     AtomicReference<Integer> amount = new AtomicReference<>(0);
-                    bombTimers.forEach(heavenBombTimer -> {
-                        if (heavenBombTimer.update()){
+                    bombTimers.forEach(bombTimer -> {
+                        if (bombTimer.update()){
                             amount.set(amount.get()+1);
                         }
                     });
@@ -68,6 +73,18 @@ public class EventListener {
             }
         }
     }
+    public void bombTimerDelete(String icon){
+        BombTimer bombTimer1 = null;
+        for (BombTimer bombTimer : bombTimers) {
+            if (bombTimer.getIcon().equals(icon)) {
+                bombTimer1 = bombTimer;
+                break;
+            }
+        }
+        if (bombTimer1 != null){
+            bombTimer1.delete();
+        }
+    }
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onChatReceived(ClientChatReceivedEvent e) {
         if (inDP) {
@@ -78,14 +95,32 @@ public class EventListener {
                 isPotCooldown = true;
                 System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + true);
             } else if (chatMsg.equals("60秒以内に爆弾を解除(討伐)せよ！")){
-                bombTimers.add(new HeavenBombTimer(Instant.now()));
+                bombTimers.add(new BombTimer(Instant.now(), 60000L, "☢"));
             } else if (chatMsg.equals("爆弾の解除に成功した！")){
-                bombTimers.get(0).delete();
+                bombTimerDelete("☢");
+            } else if (chatMsg.equals("ロボットのHPを0にしてバクハツを止めろ！")){
+                bombTimers.add(new BombTimer(Instant.now(), 8000L, "☼"));
+            } else if (chatMsg.equals("[天国の番人] いでよ幻影！")){
+                bombTimers.add(new BombTimer(Instant.now(), 60000L, "❂"));
+            } else if (chatMsg.equals("[煉獄の支配者] 個々の力を見せてみろ！")){
+                bombTimers.add(new BombTimer(Instant.now(), 30000L, "۞"));
+            } else if (chatMsg.equals("機械の討伐に成功した！")){
+                bombTimerDelete("۞");
             }
 
         }
     }
 
+    @SubscribeEvent
+    public void onMobDead(RenderLivingEvent.Pre<EntityLiving> e){
+        if (e.getEntity().getHealth() == 0){
+            if (clearColor(e.getEntity().getDisplayName().getUnformattedText()).equals("幻影")){
+                bombTimerDelete("❂");
+            }else if(clearColor(e.getEntity().getDisplayName().getUnformattedText()).equals("壊れた雪原の戦闘練習用ロボット")){
+                bombTimerDelete("☼");
+            }
+        }
+    }
     @SubscribeEvent
     public void onToolTipRender(ItemTooltipEvent e){
         if (inDP && ItemUtilities.isWeapon(e.getToolTip()) && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
@@ -187,33 +222,37 @@ public class EventListener {
 //        }
     }
     @SubscribeEvent
-    public void onActionBarUpdate(RenderGameOverlayEvent e){
-        String second;
-        AtomicReference<String> actionBarAddText = new AtomicReference<>("");
-        if(inDP && isPotCooldown && !HudUtilities.getActionbar().contains("⌛")) {
-            second = String.valueOf(POT_COOLDOWN/1000 - (Instant.now().getEpochSecond() - potCooldownStarts.getEpochSecond()));
-            if (second.length() == 1) {
-                second = "0" + second;
-                actionBarAddText.set(actionBarAddText.get().concat("§7 |§6 ⌛ " + second));
+    public void onActionBarUpdate(RenderGameOverlayEvent e) {
+        if (!HudUtilities.getActionbar().contains("§d§3§e")) {
+            String second;
+            AtomicReference<String> actionBarAddText = new AtomicReference<>("");
+            if (inDP && isPotCooldown) {
+                second = String.valueOf(POT_COOLDOWN / 1000 - (Instant.now().getEpochSecond() - potCooldownStarts.getEpochSecond()));
+                if (second.length() == 1) {
+                    second = "0" + second;
+                    actionBarAddText.set(actionBarAddText.get().concat("§7 |§6 ⌛ " + second));
+                }
             }
+            if (inDP && bombTimers.size() != 0) {
+                bombTimers.forEach(bombTimer -> actionBarAddText.set(bombTimer.getConcatSecond(actionBarAddText.get())));
+            }
+            Minecraft.getMinecraft().ingameGUI.setOverlayMessage(HudUtilities.getActionbar() + actionBarAddText.get() + "§d§3§e", false);
         }
-        if (inDP && bombTimers.size() != 0 && !HudUtilities.getActionbar().contains("☢")) {
-            bombTimers.forEach(heavenBombTimer -> actionBarAddText.set(heavenBombTimer.getConcatSecond(actionBarAddText.get())));
-        }
-        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(HudUtilities.getActionbar() + actionBarAddText.get(),false);
     }
     @SideOnly(Side.CLIENT)
     @SubscribeEvent(priority = EventPriority.NORMAL,receiveCanceled = true)
-    public void onKeyBindingPressed(InputEvent.KeyInputEvent e){
-        KeyBinding[] keyBindings = DungeonPvExtension.keyBindings;
-        if (keyBindings[0].isPressed()){
-            Minecraft.getMinecraft().player.sendChatMessage("/die");
-        }
-        if (keyBindings[1].isPressed()){
-            Minecraft.getMinecraft().player.sendChatMessage("/item");
-        }
-        if (keyBindings[2].isPressed()){
-            Minecraft.getMinecraft().player.sendChatMessage("♥ " + HudUtilities.getHealth() + "/" + HudUtilities.getMaxHealth());
+    public void onKeyBindingPressed(InputEvent.KeyInputEvent e) {
+        if (inDP) {
+            KeyBinding[] keyBindings = DungeonPvExtension.keyBindings;
+            if (keyBindings[0].isPressed()) {
+                Minecraft.getMinecraft().player.sendChatMessage("/die");
+            }
+            if (keyBindings[1].isPressed()) {
+                Minecraft.getMinecraft().player.sendChatMessage("/item");
+            }
+            if (keyBindings[2].isPressed()) {
+                Minecraft.getMinecraft().player.sendChatMessage("❤ " + HudUtilities.getHealth() + "/" + HudUtilities.getMaxHealth());
+            }
         }
     }
 }
