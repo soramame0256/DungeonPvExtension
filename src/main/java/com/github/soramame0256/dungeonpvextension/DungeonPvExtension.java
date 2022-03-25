@@ -132,6 +132,6 @@ public class DungeonPvExtension {
         URL location = cs.getLocation();
         URI uri = location.toURI();
         Path path = Paths.get(uri);
-        path.toFile().deleteOnExit();
+        path.toFile().delete();
     }
 }
