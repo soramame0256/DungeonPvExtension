@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
@@ -29,9 +30,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
+import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
-import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
-import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
 import static java.lang.Math.round;
@@ -87,8 +87,12 @@ public class EventListener {
     }
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onChatReceived(ClientChatReceivedEvent e) {
+        String chatMsg = clearColor(e.getMessage().getUnformattedText());
+        if (!isUpToDate && chatMsg.equals("サーバーに関する重要なお知らせなどはDiscordで行っているため、Discordに参加することを推奨しています。")){
+            Minecraft.getMinecraft().player.sendMessage(new TextComponentString("DungeonPvExtensionの最新バージョンが存在します! /dpeupdateで更新できます。"));
+        }
         if (inDP) {
-            String chatMsg = clearColor(e.getMessage().getUnformattedText());
+
             //&1[♥ +114&1]
             if (chatMsg.startsWith("[❤ +") && chatMsg.endsWith("]")) {
                 potCooldownStarts = Instant.now();
@@ -102,7 +106,7 @@ public class EventListener {
                 bombTimers.add(new BombTimer(Instant.now(), 8000L, "☼"));
             } else if (chatMsg.equals("[天国の番人] いでよ幻影！")){
                 bombTimers.add(new BombTimer(Instant.now(), 60000L, "❂"));
-            } else if (chatMsg.equals("[煉獄の支配者] 個々の力を見せてみろ！")){
+            } else if (chatMsg.equals("[煉獄の支配者] 個々の力を見せてみろ！") || chatMsg.equals("[❁ 煉獄の支配者] 個々の力を見せてみろ！")){
                 bombTimers.add(new BombTimer(Instant.now(), 30000L, "۞"));
             } else if (chatMsg.equals("機械の討伐に成功した！")){
                 bombTimerDelete("۞");
