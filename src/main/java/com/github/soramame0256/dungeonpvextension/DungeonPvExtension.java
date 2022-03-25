@@ -125,13 +125,10 @@ public class DungeonPvExtension {
     public void updateModFile() throws IOException, URISyntaxException {
         //https://blogs.osdn.jp/2017/09/24/runnable-jar.html
         URL url = new URL("https://github.com/soramame0256/DungeonPvExtension/releases/download/v" + latestVersion + "/" + latestVersionFileName);
-        File file = new File("mods/" + latestVersionFileName);
-        FileUtils.copyURLToFile(url,file);
-        ProtectionDomain pd = this.getClass().getProtectionDomain();
-        CodeSource cs = pd.getCodeSource();
-        URL location = cs.getLocation();
-        URI uri = location.toURI();
-        Path path = Paths.get(uri);
-        path.toFile().delete();
+        File file = new File(latestVersionFileName);
+        Path path = Paths.get("/mods", "DungeonPvExtension-" + VERSION + ".jar");
+        FileUtils.copyURLToFile(url,path.toFile());
+        path.toFile().renameTo(file);
+
     }
 }
