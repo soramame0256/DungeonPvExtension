@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -15,13 +16,11 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.commons.io.FileUtils;
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
@@ -59,7 +58,7 @@ public class DungeonPvExtension {
      * The registry events below will have fired prior to entry to this method.
      */
     @Mod.EventHandler
-    public void preinit(FMLPreInitializationEvent event){
+    public void preinit(FMLPreInitializationEvent event) {
         //https://seiai.ed.jp/sys/text/java/jv08a02.html
         INSTANCE = this;
         try {
@@ -90,6 +89,8 @@ public class DungeonPvExtension {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
     }
 
     /**
@@ -126,7 +127,11 @@ public class DungeonPvExtension {
         //https://blogs.osdn.jp/2017/09/24/runnable-jar.html
         URL url = new URL("https://github.com/soramame0256/DungeonPvExtension/releases/download/v" + latestVersion + "/" + latestVersionFileName);
         File file = new File(latestVersionFileName);
-        Path path = Paths.get("/mods", "DungeonPvExtension-" + VERSION + ".jar");
+        ProtectionDomain pd = this.getClass().getProtectionDomain();
+        CodeSource cs = pd.getCodeSource();
+        URL location = cs.getLocation();
+        JarURLConnection conn = (JarURLConnection)location.openConnection();
+        Path path = Paths.get(conn.getJarFileURL().toURI());
         FileUtils.copyURLToFile(url,path.toFile());
         path.toFile().renameTo(file);
 
