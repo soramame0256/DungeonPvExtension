@@ -133,7 +133,5 @@ public class DungeonPvExtension {
         JarURLConnection conn = (JarURLConnection)location.openConnection();
         Path path = Paths.get(conn.getJarFileURL().toURI());
         FileUtils.copyURLToFile(url,path.toFile());
-        path.toFile().renameTo(file);
-
     }
 }
