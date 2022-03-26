@@ -1,12 +1,12 @@
 package com.github.soramame0256.dungeonpvextension.listener;
 
 import com.github.soramame0256.dungeonpvextension.DungeonPvExtension;
+import com.github.soramame0256.dungeonpvextension.api.Option;
 import com.github.soramame0256.dungeonpvextension.utils.ArrayUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.ResourceLocation;
@@ -24,11 +24,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
@@ -114,7 +111,6 @@ public class EventListener {
 
         }
     }
-
     @SubscribeEvent
     public void onMobDead(RenderLivingEvent.Pre<EntityLiving> e){
         if (e.getEntity().getHealth() == 0){
@@ -174,6 +170,8 @@ public class EventListener {
             List<String> newLore = new ArrayList<>();
             boolean customLore = false; //+--------------------+から+--------------------+の間=true
             List<String> oldLore;
+            Map<Option, Double> options = new HashMap<>();
+            Integer ignore = 3;
             oldLore = Arrays.asList(ItemUtilities.getNonModdedLore(e.getItemStack()));
             for (String s : oldLore) {
                 if(clearColor(s).equals("+--------------------+")){
@@ -182,12 +180,53 @@ public class EventListener {
                         newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
                         newLore.add(" §f解体入手ゴールド: §a+" + commaSeparate(round(e.getItemStack().getTagCompound().getInteger("internalExp")*0.6)));
                         customLore = false;
+                        AtomicReference<Double> normalScore = new AtomicReference<>(0d);
+                        AtomicReference<Double> hpScore = new AtomicReference<>(0d);
+                        options.forEach((o,d) ->{
+                            if(o.equals(Option.ATK_PERCENTAGE)){
+                                normalScore.updateAndGet(v -> v + d);
+                                hpScore.updateAndGet(v -> v + d);
+                            }else if(o.equals(Option.HP_PERCENTAGE)){
+                                hpScore.updateAndGet(v -> v + d);
+                            }else if(o.equals(Option.CRITICAL_CHANCE)){
+                                normalScore.updateAndGet(v -> v + d*2d);
+                                hpScore.updateAndGet(v -> v + d*2d);
+                            }else if(o.equals(Option.CRITICAL_DAMAGE)){
+                                normalScore.updateAndGet(v -> v + d);
+                                hpScore.updateAndGet(v -> v + d);
+                            }
+                        });
+                        newLore.add(" §f汎用スコア: §a" + ((double) Math.round(normalScore.get()*10))/10);
+                        newLore.add(" §fHPスコア: §a" + ((double) Math.round(hpScore.get()*10))/10);
                     }else{
                         customLore = true;
+                    }
+                }else if(customLore){
+                    if(ignore > 0){
+                        ignore--;
+                    }else{
+                        for (Option o : Option.values()){
+                            if (clearColor(s).contains(o.icon)){
+                                if(clearColor(s).contains("%") && o.name.contains("%")){
+                                    if(options.containsKey(o)){
+                                        options.replace(o, options.get(o) + Double.parseDouble(clearColor(s).split(" ")[3].replace("+","").replace("%","")));
+                                    }else{
+                                        options.put(o, Double.parseDouble(clearColor(s).split(" ")[3].replace("+","").replace("%","")));
+                                    }
+                                }else if(!clearColor(s).contains("%") && !o.name.contains("%")){
+                                    if(options.containsKey(o)){
+                                        options.replace(o, options.get(o) + Double.parseDouble(clearColor(s).split(" ")[3].replace("+","")));
+                                    }else{
+                                        options.put(o, Double.parseDouble(clearColor(s).split(" ")[3].replace("+","")));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 newLore.add(s);
             }
+
             if(HudUtilities.getCurrentGuiTitle().equals("防具強化")){
                 Integer level = ItemUtilities.getArmorLevel(e.getItemStack());
                 int maxLevel = ItemUtilities.getArmorLevelMax(e.getItemStack());
