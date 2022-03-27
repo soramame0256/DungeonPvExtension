@@ -83,7 +83,7 @@ public class EventListener {
         }
     }
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onChatReceived(ClientChatReceivedEvent e) {
+    public void onChatReceived(ClientChatReceivedEvent e){
         String chatMsg = clearColor(e.getMessage().getUnformattedText());
         if (!isUpToDate && chatMsg.equals("サーバーに関する重要なお知らせなどはDiscordで行っているため、Discordに参加することを推奨しています。")){
             Minecraft.getMinecraft().player.sendMessage(new TextComponentString("DungeonPvExtensionの最新バージョンが存在します! /dpeupdateで更新できます。"));
@@ -107,6 +107,10 @@ public class EventListener {
                 bombTimers.add(new BombTimer(Instant.now(), 30000L, "۞"));
             } else if (chatMsg.equals("機械の討伐に成功した！")){
                 bombTimerDelete("۞");
+            } else if (chatMsg.equals("誰かが世界樹の心臓部にテレポートされた。")){
+                bombTimers.add(new BombTimer(Instant.now(), 30000L, "✿"));
+            } else if (chatMsg.equals("心臓部からの脱出に成功した！")){
+                bombTimerDelete("✿");
             }
 
         }
