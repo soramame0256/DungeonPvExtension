@@ -41,6 +41,7 @@ public class EventListener {
     private static ResourceLocation BAR = new ResourceLocation("minecraft", "textures/gui/bars.png");
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
     private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
+    private static Instant healthChatCooldown = null;
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -135,7 +136,7 @@ public class EventListener {
             oldLore = Arrays.asList(ItemUtilities.getNonModdedLore(e.getItemStack()));
             for (String s : oldLore) {
                 if (nextSub) {
-                    newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getInteger("baseSubStat") + ")");
+                    newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getDouble("baseSubStat") + ")");
                     nextSub = false;
                 } else if (s.contains("基礎攻撃力") && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("baseAtk")) {
                     newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getInteger("baseAtk") + ")");
@@ -298,6 +299,12 @@ public class EventListener {
                 Minecraft.getMinecraft().player.sendChatMessage("/item");
             }
             if (keyBindings[2].isPressed()) {
+                if (healthChatCooldown != null){
+                    if (!(healthChatCooldown.getEpochSecond() < Instant.now().getEpochSecond())){
+                        return;
+                    }
+                }
+                healthChatCooldown = Instant.now();
                 Minecraft.getMinecraft().player.sendChatMessage("❤ " + HudUtilities.getHealth() + "/" + HudUtilities.getMaxHealth());
             }
         }
