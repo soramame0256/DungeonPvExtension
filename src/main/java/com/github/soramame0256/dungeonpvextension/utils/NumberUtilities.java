@@ -42,4 +42,7 @@ public class NumberUtilities {
     public static String commaSeparate(Short s){
         return commaSeparate(s.doubleValue());
     }
+    public static String toTime(Long l){
+        return l/3600 + "h" + (l%3600)/60 + "m" + l%60 + "s";
+    }
 }

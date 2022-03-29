@@ -10,6 +10,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -22,6 +23,7 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import scala.collection.parallel.ParIterableLike;
 
 import java.time.Instant;
 import java.util.*;
@@ -30,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
+import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.toTime;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
 import static java.lang.Math.round;
 
@@ -42,6 +45,7 @@ public class EventListener {
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
     private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
     private static Instant healthChatCooldown = null;
+    private static Instant dungeonClearTime = null;
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -90,7 +94,6 @@ public class EventListener {
             Minecraft.getMinecraft().player.sendMessage(new TextComponentString("DungeonPvExtensionの最新バージョンが存在します! /dpeupdateで更新できます。"));
         }
         if (inDP) {
-
             //&1[♥ +114&1]
             if (chatMsg.startsWith("[❤ +") && chatMsg.endsWith("]")) {
                 potCooldownStarts = Instant.now();
@@ -112,6 +115,21 @@ public class EventListener {
                 bombTimers.add(new BombTimer(Instant.now(), 30000L, "✿"));
             } else if (chatMsg.equals("心臓部からの脱出に成功した！")){
                 bombTimerDelete("✿");
+            } else if (chatMsg.equals("\u22D9 ダンジョンに転移します.. ")){
+                dungeonClearTime = Instant.now();
+            } else if (chatMsg.equals("8秒後にテレポートされます")){
+                ITextComponent textComponent = new TextComponentString("クリアタイム: " + toTime(Instant.now().getEpochSecond() - dungeonClearTime.getEpochSecond()));
+                Minecraft.getMinecraft().player.sendMessage(textComponent);
+            } else if (chatMsg.endsWith("秒後にダンジョン前に戻ります")){
+                int timer = 0;
+                try{
+                    timer = Integer.parseInt(chatMsg.replace("秒後にダンジョン前に戻ります", ""));
+                }catch (NumberFormatException exception){
+                    //Minecraft.getMinecraft().player.sendMessage(new TextComponentString("[DungeonPvExtension] §cメッセージの分析中にエラーが発生しました。"));
+                }
+                bombTimers.add(new BombTimer(Instant.now(), timer* 1000L, "§d۩"));
+            } else if (chatMsg.equals("初期地点に戻ります")){
+                bombTimerDelete("§d۩");
             }
 
         }
