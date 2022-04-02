@@ -14,7 +14,7 @@ public class CurrentSelection {
     private static Double chargeEff = 0d;
     public static void setAll(ItemStack i){
         int line = 0;
-        for(String s : ItemUtilities.getNonModdedLore(i)) {
+        for(String s : ItemUtilities.getLore(i)) {
             line++;
             if (line == 1) {
                 try {
@@ -36,7 +36,6 @@ public class CurrentSelection {
                 chargeEff = Double.parseDouble(s.split(" ")[3].replace("%", ""));
             }
         }
-        ItemUtilities.setTempModded(i);
     }
     public static Double getChargeEff() {
         return chargeEff;

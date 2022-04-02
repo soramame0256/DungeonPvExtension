@@ -11,21 +11,22 @@ import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.commons.io.FileUtils;
-import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 
 import java.io.*;
-import java.net.*;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
 
 @Mod(
         modid = DungeonPvExtension.MOD_ID,
@@ -36,7 +37,7 @@ public class DungeonPvExtension {
 
     public static final String MOD_ID = "dungeonpvextension";
     public static final String MOD_NAME = "DungeonPvExtension";
-    public static final String VERSION = "1.0.12";
+    public static final String VERSION = "1.0.13";
     public static KeyBinding[] keyBindings = new KeyBinding[3];
     public static boolean inDP = false;
     public static boolean isEnable = true;
@@ -113,6 +114,7 @@ public class DungeonPvExtension {
     @Mod.EventHandler
     public void postinit(FMLPostInitializationEvent event) {
         System.out.println("Initializing...");
+        System.out.println("Minecraft Version: " + Loader.instance().getMCVersionString());
         new EventListener();
         System.out.println("Generated EventListener Instance.");
         ClientCommandHandler.instance.registerCommand(new ToggleCmd());

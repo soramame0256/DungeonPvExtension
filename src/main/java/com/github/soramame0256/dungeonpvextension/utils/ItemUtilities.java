@@ -1,6 +1,5 @@
 package com.github.soramame0256.dungeonpvextension.utils;
 
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,7 +20,6 @@ public class ItemUtilities {
         if(NBT1 != null && NBT2 != null) {
             NBT2.setTag("Name", new NBTTagString(s));
             NBT1.setTag("display", NBT2);
-            setTempModded(i);
             i.setTagCompound(NBT1);
         }
     }
@@ -33,20 +31,7 @@ public class ItemUtilities {
         if(NBT1 != null && NBT2 != null) {
             NBT2.setTag("Lore", tag);
             NBT1.setTag("display", NBT2);
-            setTempModded(i);
             i.setTagCompound(NBT1);
-        }
-    }
-    public static String[] getNonModdedLore(ItemStack i){
-        List<String> lore = new ArrayList<>();
-        if (i.getTagCompound() != null && i.getTagCompound().hasKey("dpeExtraAttributes") && i.getSubCompound("dpeExtraAttributes").hasKey("lore")){
-            NBTTagCompound dpeExtraAttributes = i.getSubCompound("dpeExtraAttributes");
-            for (NBTBase a : dpeExtraAttributes.getTagList("lore", 8)) {
-                lore.add(a.toString().substring(1, a.toString().length() - 1));
-            }
-            return lore.toArray(new String[0]);
-        }else{
-            return getLore(i);
         }
     }
     public static boolean isWeapon(List<String> lore){
@@ -58,6 +43,13 @@ public class ItemUtilities {
             }
         });
         return is.get();
+    }
+    public static boolean isLocked(ItemStack i){
+        if(i.getTagCompound() != null && i.getTagCompound().hasKey("itemlock")){
+            return i.getTagCompound().getInteger("itemlock") == 1;
+        } else{
+            return false;
+        }
     }
     public static boolean isArmor(List<String> lore){
         AtomicReference<Boolean> is = new AtomicReference<>();
@@ -79,28 +71,35 @@ public class ItemUtilities {
         });
         return is.get();
     }
-    @SuppressWarnings(value = "all")
-    public static boolean isModded(ItemStack is){
-        if (is.getTagCompound() != null && !is.getTagCompound().hasKey("dpeModded")){
-            return false;
-        }
-        return is.getTagCompound().getBoolean("dpeModded");
+    public static boolean isPickaxe(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if(str.contains("採掘アイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
     }
-    @SuppressWarnings(value = "all")
-    public static boolean isTempModded(ItemStack is){
-        if (is.getTagCompound() != null && !is.getTagCompound().hasKey("dpeTempModded")){
-            return false;
-        } else return is.getTagCompound().getLong("dpeTempModded") + 3 > Instant.now().getEpochSecond();
+    public static boolean isOre(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if(str.contains("未精錬アイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
     }
-    public static void setTempModded(ItemStack is){
-        if(is.getTagCompound() != null) {
-            is.getTagCompound().setLong("dpeTempModded", Instant.now().getEpochSecond());
-        }
-    }
-    public static void setModded(ItemStack is){
-        if(is.getTagCompound() != null) {
-            is.getTagCompound().setBoolean("dpeModded",true);
-        }
+    public static boolean isGem(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if(str.contains("精錬アイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
     }
     public static String[] getLore(ItemStack is){
         List<String> lore = new ArrayList<>();
@@ -117,17 +116,11 @@ public class ItemUtilities {
             return lore.toArray(new String[0]);
         }
         lore.forEach(s -> tag.appendTag(new NBTTagString(s)));
-        if(NBT1 != null) {
-            NBT2.setTag("lore", tag);
-            NBT1.setTag("dpeExtraAttributes", NBT2);
-            setTempModded(is);
-            is.setTagCompound(NBT1);
-        }
         return lore.toArray(new String[0]);
     }
     public static Integer getWeaponLevel(ItemStack is){
         String str = "0";
-        for (String s : getNonModdedLore(is)) {
+        for (String s : getLore(is)) {
             if (clearColor(s).contains("❃ 強化レベル:")){
                 str = clearColor(s).split(" ")[3];
             }
@@ -136,7 +129,7 @@ public class ItemUtilities {
     }
     public static Integer getWeaponLevelMax(ItemStack is){
         String str = "0";
-        for (String s : getNonModdedLore(is)) {
+        for (String s : getLore(is)) {
             if (clearColor(s).contains("❃ 強化レベル:")){
                 str = clearColor(s).split(" ")[5];
             }
@@ -145,7 +138,7 @@ public class ItemUtilities {
     }
     public static Integer getArmorLevel(ItemStack is){
         String str = "0";
-        for (String s : getNonModdedLore(is)) {
+        for (String s : getLore(is)) {
             if (clearColor(s).contains("❃ 強化値:")){
                 str = clearColor(s).split(" ")[3].replace("+","");
             }
@@ -153,7 +146,7 @@ public class ItemUtilities {
         return Integer.parseInt(str);
     }
     public static Integer getArmorLevelMax(ItemStack is){
-        for (String s : getNonModdedLore(is)) {
+        for (String s : getLore(is)) {
             if (clearColor(s).contains("防具アイテム")){
                 String r = s.split(" ")[1];
                 if(r.contains("§b")){

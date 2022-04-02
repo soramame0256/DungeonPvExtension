@@ -5,7 +5,8 @@ import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class HudUtilities {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -33,25 +34,26 @@ public class HudUtilities {
         return Integer.parseInt(s.split(" ")[3]);
     }
     public static String getActionbar() {
-        try {
-            return (String) ReflectionHelper.findField(GuiIngame.class, "displayedActionBar", "field_73838_g").get(Minecraft.getMinecraft().ingameGUI);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        if (Loader.instance().getMCVersionString().equals("Minecraft 1.12.2")){
+            return ObfuscationReflectionHelper.getPrivateValue(GuiIngame.class, Minecraft.getMinecraft().ingameGUI, "field_73838_g");
+        }else{
+            return ObfuscationReflectionHelper.getPrivateValue(GuiIngame.class, Minecraft.getMinecraft().ingameGUI, "field_73838_g","");
         }
-        return "";
     }
     //https://forums.minecraftforge.net/topic/40032-how-to-get-the-title-and-sub-title-that-is-currently-on-screen/
     public static String getCurrentTitle(){
-        try {
-            return (String) ReflectionHelper.findField(GuiIngame.class, "displayedTitle", "field_175201_x").get(Minecraft.getMinecraft().ingameGUI);
-        } catch (IllegalAccessException ignored) {}
-        return "";
+        if (Loader.instance().getMCVersionString().equals("Minecraft 1.12.2")){
+            return ObfuscationReflectionHelper.getPrivateValue(GuiIngame.class, Minecraft.getMinecraft().ingameGUI, "field_175201_x");
+        }else {
+            return ObfuscationReflectionHelper.getPrivateValue(GuiIngame.class, Minecraft.getMinecraft().ingameGUI, "field_175201_x", "");
+        }
     }
     public static String getCurrentSubTitle(){
-        try {
-            return (String) ReflectionHelper.findField(GuiIngame.class, "displayedSubTitle", "field_175200_y").get(Minecraft.getMinecraft().ingameGUI);
-        } catch (IllegalAccessException ignored) {}
-        return "";
+        if (Loader.instance().getMCVersionString().equals("Minecraft 1.12.2")){
+            return ObfuscationReflectionHelper.getPrivateValue(GuiIngame.class, Minecraft.getMinecraft().ingameGUI, "field_175200_y");
+        }else{
+            return ObfuscationReflectionHelper.getPrivateValue(GuiIngame.class, Minecraft.getMinecraft().ingameGUI, "field_175201_x","");
+        }
     }
     public static String getCurrentGuiTitle(){
         Container container = mc.player.openContainer;

@@ -23,14 +23,14 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import scala.collection.parallel.ParIterableLike;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
+import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
+import static com.github.soramame0256.dungeonpvextension.utils.ItemUtilities.isLocked;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.toTime;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
@@ -90,7 +90,7 @@ public class EventListener {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onChatReceived(ClientChatReceivedEvent e){
         String chatMsg = clearColor(e.getMessage().getUnformattedText());
-        if (!isUpToDate && chatMsg.equals("サーバーに関する重要なお知らせなどはDiscordで行っているため、Discordに参加することを推奨しています。")){
+        if (!isUpToDate && (chatMsg.equals("サーバーに関する重要なお知らせなどはDiscordで行っているため、Discordに参加することを推奨しています。") || chatMsg.equals("We encourage you to join Discord because we have important server-related announcements on Discord."))){
             Minecraft.getMinecraft().player.sendMessage(new TextComponentString("DungeonPvExtensionの最新バージョンが存在します! /dpeupdateで更新できます。"));
         }
         if (inDP) {
@@ -146,12 +146,13 @@ public class EventListener {
     }
     @SubscribeEvent
     public void onToolTipRender(ItemTooltipEvent e){
-        if (inDP && ItemUtilities.isWeapon(e.getToolTip()) && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
+        if (inDP && ItemUtilities.isWeapon(e.getToolTip()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             List<String> newLore = new ArrayList<>();
             boolean nextSub = false;
             boolean customLore = false; //+--------------------+から+--------------------+の間=true
             List<String> oldLore;
-            oldLore = Arrays.asList(ItemUtilities.getNonModdedLore(e.getItemStack()));
+            oldLore = e.getToolTip();
+            oldLore.set(0, e.getToolTip().get(0) + (isLocked(e.getItemStack()) ? " §a[Locked]" : ""));
             for (String s : oldLore) {
                 if (nextSub) {
                     newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getDouble("baseSubStat") + ")");
@@ -188,14 +189,16 @@ public class EventListener {
                 }
                 newLore.add("§7 合計: " + commaSeparate(totalCost));
             }
-            ItemUtilities.changeLore(e.getItemStack(), newLore);
-        }else if (inDP && ItemUtilities.isArmor(e.getToolTip()) && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
+            e.getToolTip().clear();
+            e.getToolTip().addAll(newLore);
+
+        }else if (inDP && ItemUtilities.isArmor(e.getToolTip()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             List<String> newLore = new ArrayList<>();
             boolean customLore = false; //+--------------------+から+--------------------+の間=true
             List<String> oldLore;
             Map<Option, Double> options = new HashMap<>();
             Integer ignore = 3;
-            oldLore = Arrays.asList(ItemUtilities.getNonModdedLore(e.getItemStack()));
+            oldLore = e.getToolTip();
             for (String s : oldLore) {
                 if(clearColor(s).equals("+--------------------+")){
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")){
@@ -264,11 +267,12 @@ public class EventListener {
                 }
                 newLore.add("§7合計: " + commaSeparate(totalCost));
             }
-            ItemUtilities.changeLore(e.getItemStack(), newLore);
-        }else if (inDP && ItemUtilities.isScrap(e.getToolTip()) && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
+            e.getToolTip().clear();
+            e.getToolTip().addAll(newLore);
+        }else if (inDP && ItemUtilities.isScrap(e.getToolTip()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             List<String> newLore = new ArrayList<>();
             List<String> oldLore;
-            oldLore = Arrays.asList(ItemUtilities.getNonModdedLore(e.getItemStack()));
+            oldLore = e.getToolTip();
             for (String s : oldLore) {
                 if(clearColor(s).contains("解体アイテム")){
                     newLore.add(s);
@@ -282,7 +286,8 @@ public class EventListener {
                     newLore.add(s);
                 }
             }
-            ItemUtilities.changeLore(e.getItemStack(), newLore);
+            e.getToolTip().clear();
+            e.getToolTip().addAll(newLore);
         }//else if (inDP && ArrayUtilities.isStringContainsInList(e.getToolTip(),">> 右クリックでキャラ変更 <<") && e.getItemStack().getDisplayName().startsWith("キャラクター [") && e.getItemStack().getDisplayName().endsWith("]") && !ItemUtilities.isTempModded(e.getItemStack()) && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("display")){
             //CurrentSelection.setAll(e.getItemStack());
 //        }

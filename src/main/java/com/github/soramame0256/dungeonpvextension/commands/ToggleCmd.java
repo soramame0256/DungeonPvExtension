@@ -6,7 +6,6 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 
-import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.inDP;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.isEnable;
 
 public class ToggleCmd extends DpeCmdBase {
