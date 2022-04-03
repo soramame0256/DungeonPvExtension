@@ -2,18 +2,26 @@ package com.github.soramame0256.dungeonpvextension.listener;
 
 import com.github.soramame0256.dungeonpvextension.DungeonPvExtension;
 import com.github.soramame0256.dungeonpvextension.api.Option;
+import com.github.soramame0256.dungeonpvextension.commands.QuickChatChangeMsgCmd;
 import com.github.soramame0256.dungeonpvextension.utils.ArrayUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.DataUtils;
 import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import com.google.gson.JsonArray;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.inventory.Slot;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,10 +32,17 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.Color;
 
 import javax.xml.crypto.Data;
+import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
@@ -47,13 +62,20 @@ public class EventListener {
     private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
     private static Instant healthChatCooldown = null;
     private static Instant dungeonClearTime = null;
-    private static JsonArray storageName = DataUtils.getInstance().getJsonArrayData("StorageNames");
+    private static JsonArray storageName;
+    private static Instant quickChatCooldown = null;
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
+        try {
+            reload();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void reload(){
-        storageName = DataUtils.getInstance().getJsonArrayData("StorageNames");
+    public static void reload() throws IOException {
+        DataUtils dataUtils = getDataUtil();
+        storageName = dataUtils.getJsonArrayData("StorageNames");
     }
     @SubscribeEvent
     public void onUpdate(TickEvent.ClientTickEvent e){
@@ -348,6 +370,24 @@ public class EventListener {
                 }
                 healthChatCooldown = Instant.now();
                 Minecraft.getMinecraft().player.sendChatMessage("❤ " + HudUtilities.getHealth() + "/" + HudUtilities.getMaxHealth());
+            }
+            for (int i = 3; i< 8; i++){
+                if (keyBindings[i].isPressed()){
+                    if (quickChatCooldown != null){
+                        if (!(quickChatCooldown.getEpochSecond() < Instant.now().getEpochSecond() - 3)){
+                            return;
+                        }
+                    }
+                    quickChatCooldown = Instant.now();
+                    DataUtils dataUtils = getDataUtil();
+                    if(!dataUtils.getRootJson().has("QuickChat") || !dataUtils.getJsonArrayData("QuickChat").get(0).getAsJsonObject().has(String.valueOf(i-2))){
+                        Minecraft.getMinecraft().player.sendMessage(new TextComponentString("§cQuickChatの使用には事前に /quickchatmessage で設定する必要があります。"));
+                        return;
+                    }
+                    String message = dataUtils.getJsonArrayData("QuickChat").get(0).getAsJsonObject().get(String.valueOf(i-2)).getAsString();
+                    Minecraft.getMinecraft().player.sendChatMessage(message);
+                    return;
+                }
             }
         }
     }

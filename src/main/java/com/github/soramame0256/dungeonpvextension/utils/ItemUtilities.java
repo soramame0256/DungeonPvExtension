@@ -6,8 +6,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -144,15 +144,33 @@ public class ItemUtilities {
         return Integer.parseInt(str);
     }
     public static Integer getArmorLevelMax(ItemStack is){
+        switch (getRarity(is)){
+            case 3:
+                return 12;
+            case 4:
+                return 16;
+            case 5:
+                return 20;
+            default:
+                return 0;
+        }
+    }
+    public static Integer getRarity(ItemStack is){
+        String type = "";
+        if (isArmor(Arrays.asList(getLore(is)))){
+            type = "防具アイテム";
+        }else if(isWeapon(Arrays.asList(getLore(is)))){
+            type = "武器アイテム";
+        }
         for (String s : getLore(is)) {
-            if (clearColor(s).contains("防具アイテム")){
+            if (clearColor(s).contains(type)){
                 String r = s.split(" ")[1];
                 if(r.contains("§b")){
-                    return 12;
+                    return 3;
                 }else if(r.contains("§d")){
-                    return 16;
+                    return 4;
                 }else if(r.contains("§6")){
-                    return 20;
+                    return 5;
                 }
             }
         }

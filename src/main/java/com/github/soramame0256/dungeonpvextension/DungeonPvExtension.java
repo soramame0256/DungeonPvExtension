@@ -9,7 +9,6 @@ import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.ClientCommandHandler;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Loader;
@@ -38,8 +37,9 @@ public class DungeonPvExtension {
 
     public static final String MOD_ID = "dungeonpvextension";
     public static final String MOD_NAME = "DungeonPvExtension";
-    public static final String VERSION = "1.0.14";
-    public static KeyBinding[] keyBindings = new KeyBinding[3];
+    public static final String VERSION = "1.0.15";
+    private static DataUtils dataUtil;
+    public static KeyBinding[] keyBindings = new KeyBinding[8];
     public static boolean inDP = false;
     public static boolean isEnable = true;
     public static Minecraft mc;
@@ -51,6 +51,11 @@ public class DungeonPvExtension {
      */
     @Mod.Instance(MOD_ID)
     public static DungeonPvExtension INSTANCE;
+
+    public static DataUtils getDataUtil() {
+        return dataUtil;
+    }
+
     @Config(modid = MOD_ID, type = Config.Type.INSTANCE)
     public static class CONFIG_TYPES{
         public static String[] disableIds = {"Steve", "Alex"};
@@ -104,6 +109,9 @@ public class DungeonPvExtension {
         keyBindings[0] = new KeyBinding("/die command", Keyboard.KEY_NONE, "DungeonPvExtension");
         keyBindings[1] = new KeyBinding("/item command", Keyboard.KEY_NONE, "DungeonPvExtension");
         keyBindings[2] = new KeyBinding("Msg current HP", Keyboard.KEY_NONE, "DungeonPvExtension");
+        for (int i = 3; i< 8; i++){
+            keyBindings[i] = new KeyBinding("QuickChat Slot" + (i-2), Keyboard.KEY_NONE, "DungeonPvExtension");
+        }
         for (KeyBinding binding : keyBindings) {
             ClientRegistry.registerKeyBinding(binding);
         }
@@ -117,11 +125,9 @@ public class DungeonPvExtension {
         System.out.println("Initializing...");
         System.out.println("Minecraft Version: " + Loader.instance().getMCVersionString());
         try {
-            new DataUtils();
-            System.out.println("Generated DataUtils Instance.");
-        }catch (IOException e){
-            System.out.println("DataUtils Instance Generation failed.");
-            System.out.println("Data won't be saved this time.");
+            dataUtil = new DataUtils("saves.json");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         new EventListener();
         System.out.println("Generated EventListener Instance.");
@@ -133,6 +139,7 @@ public class DungeonPvExtension {
         ClientCommandHandler.instance.registerCommand(new TestMsgSendCmd());
         ClientCommandHandler.instance.registerCommand(new UpdateCmd());
         ClientCommandHandler.instance.registerCommand(new ChangeStorageNameCmd());
+        ClientCommandHandler.instance.registerCommand(new QuickChatChangeMsgCmd());
     }
     public void updateModFile() throws IOException, URISyntaxException {
         //https://blogs.osdn.jp/2017/09/24/runnable-jar.html

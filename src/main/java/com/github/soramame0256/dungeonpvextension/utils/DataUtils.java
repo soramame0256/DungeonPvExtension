@@ -5,59 +5,101 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.*;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.MOD_NAME;
 
 public class DataUtils {
-    private static DataUtils INSTANCE;
-    private static final String FILE = MOD_NAME + "/saves.json";
-    public static DataUtils getInstance() {
-        return INSTANCE;
-    }
-    public DataUtils() throws IOException {
+    private final JsonObject jsonObject;
+    private final String filePath;
+    public DataUtils(String fileName) throws IOException {
         if(Files.notExists(Paths.get(MOD_NAME))) {
             Files.createDirectory(Paths.get(MOD_NAME));
         }
-        if(Files.notExists(Paths.get(FILE))){
-            FileWriter fw = new FileWriter(FILE);
+        this.filePath = MOD_NAME + "/" + fileName;
+        if(Files.notExists(Paths.get(filePath))){
+            FileWriter fw = new FileWriter(filePath);
             PrintWriter writer = new PrintWriter(fw);
             writer.print("{}");
             writer.flush();
             writer.close();
         }
-        INSTANCE = this;
+        this.jsonObject = convertFileToJSON(filePath);
     }
     public String getStringData(String index){
-        JsonObject jsonObject = convertFileToJSON(FILE);
-        if (jsonObject.has(index)) {
-            return jsonObject.get(index).getAsString();
+        if (this.jsonObject.has(index)) {
+            return this.jsonObject.get(index).getAsString();
         }else{
             return "";
         }
     }
-    public void saveStringData(String index, String value) throws IOException {
-        JsonObject jsonObject = convertFileToJSON(FILE);
-        jsonObject.addProperty(index, value);
-        FileWriter fileWriter = new FileWriter(FILE);
-        fileWriter.write(jsonObject.toString());
-        fileWriter.flush();
-        fileWriter.close();
+    public void saveStringData(String index, String value){
+        this.jsonObject.addProperty(index, value);
+        try {
+            flush();
+        }catch(IOException e){
+            System.out.println("Saving data failed");
+            e.printStackTrace();
+        }
     }
-    public void saveJsonData(String index, JsonElement value) throws IOException {
-        JsonObject jsonObject = convertFileToJSON(FILE);
-        jsonObject.add(index, value);
-        FileWriter fileWriter = new FileWriter(FILE);
-        fileWriter.write(jsonObject.toString());
+    public Number getNumberData(String index){
+        if (this.jsonObject.has(index)) {
+            return this.jsonObject.get(index).getAsNumber();
+        }else{
+            return 0;
+        }
+    }
+    public void saveNumberData(String index, Number value){
+        this.jsonObject.addProperty(index, value);
+        try {
+            flush();
+        }catch(IOException e){
+            System.out.println("Saving data failed");
+            e.printStackTrace();
+        }
+    }
+    public Boolean getBooleanData(String index){
+        if (this.jsonObject.has(index)) {
+            return this.jsonObject.get(index).getAsBoolean();
+        }else{
+            return false;
+        }
+    }
+    public void saveBooleanData(String index, Boolean value){
+        this.jsonObject.addProperty(index, value);
+        try {
+            flush();
+        }catch(IOException e){
+            System.out.println("Saving data failed");
+            e.printStackTrace();
+        }
+    }
+    public void saveJsonData(String index, JsonElement value){
+        this.jsonObject.add(index, value);
+        try {
+            flush();
+        }catch(IOException e){
+            System.out.println("Saving data failed");
+            e.printStackTrace();
+        }
+    }
+    public JsonObject getRootJson(){
+        return this.jsonObject;
+    }
+    public void flush() throws IOException {
+        FileWriter fileWriter = new FileWriter(filePath);
+        fileWriter.write(this.jsonObject.toString());
         fileWriter.flush();
         fileWriter.close();
     }
     public JsonArray getJsonArrayData(String index){
-        JsonObject jsonObject = convertFileToJSON(FILE);
-        if (jsonObject.has(index)) {
-            return jsonObject.get(index).getAsJsonArray();
+        if (this.jsonObject.has(index)) {
+            return this.jsonObject.get(index).getAsJsonArray();
         }else{
             JsonArray jsonArray = new JsonArray();
             jsonArray.add(new JsonObject());
@@ -67,12 +109,12 @@ public class DataUtils {
     //From anywhere
     public static JsonObject convertFileToJSON (String fileName){
         // Read from File to String
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jo = new JsonObject();
         try {
             JsonParser parser = new JsonParser();
             JsonElement jsonElement = parser.parse(new FileReader(fileName));
-            jsonObject = jsonElement.getAsJsonObject();
+            jo = jsonElement.getAsJsonObject();
         } catch (IOException ignored) {}
-        return jsonObject;
+        return jo;
     }
 }
