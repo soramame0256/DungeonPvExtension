@@ -104,8 +104,6 @@ public class ItemUtilities {
     public static String[] getLore(ItemStack is){
         List<String> lore = new ArrayList<>();
         NBTTagCompound displayNBT = is.getSubCompound("display");
-        NBTTagCompound NBT1 = is.getTagCompound();
-        NBTTagCompound NBT2 = new NBTTagCompound();
         NBTTagList tag = new NBTTagList();
         if(displayNBT != null && displayNBT.hasKey("Lore")) {
             for (NBTBase a : displayNBT.getTagList("Lore", 8)) {

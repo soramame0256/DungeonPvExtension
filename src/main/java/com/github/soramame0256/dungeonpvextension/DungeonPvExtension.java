@@ -2,6 +2,7 @@ package com.github.soramame0256.dungeonpvextension;
 
 import com.github.soramame0256.dungeonpvextension.commands.*;
 import com.github.soramame0256.dungeonpvextension.listener.EventListener;
+import com.github.soramame0256.dungeonpvextension.utils.DataUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -37,7 +38,7 @@ public class DungeonPvExtension {
 
     public static final String MOD_ID = "dungeonpvextension";
     public static final String MOD_NAME = "DungeonPvExtension";
-    public static final String VERSION = "1.0.13";
+    public static final String VERSION = "1.0.14";
     public static KeyBinding[] keyBindings = new KeyBinding[3];
     public static boolean inDP = false;
     public static boolean isEnable = true;
@@ -115,6 +116,13 @@ public class DungeonPvExtension {
     public void postinit(FMLPostInitializationEvent event) {
         System.out.println("Initializing...");
         System.out.println("Minecraft Version: " + Loader.instance().getMCVersionString());
+        try {
+            new DataUtils();
+            System.out.println("Generated DataUtils Instance.");
+        }catch (IOException e){
+            System.out.println("DataUtils Instance Generation failed.");
+            System.out.println("Data won't be saved this time.");
+        }
         new EventListener();
         System.out.println("Generated EventListener Instance.");
         ClientCommandHandler.instance.registerCommand(new ToggleCmd());
@@ -124,6 +132,7 @@ public class DungeonPvExtension {
         ClientCommandHandler.instance.registerCommand(new ChanceCalcCmd());
         ClientCommandHandler.instance.registerCommand(new TestMsgSendCmd());
         ClientCommandHandler.instance.registerCommand(new UpdateCmd());
+        ClientCommandHandler.instance.registerCommand(new ChangeStorageNameCmd());
     }
     public void updateModFile() throws IOException, URISyntaxException {
         //https://blogs.osdn.jp/2017/09/24/runnable-jar.html
