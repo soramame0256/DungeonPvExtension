@@ -1,0 +1,54 @@
+{
+    "Weapons": [
+        {
+            "expert1-sword": {
+                "damageMax": 16,
+                "damageMin": 10,
+                "optionMax": 22.6,
+                "optionMin": 14.6,
+                "option": "cc",
+                "internalExp": 600
+            },
+            "exp2-madou": {
+                "damageMax": 41,
+                "damageMin": 26,
+                "optionMax": 5.6,
+                "optionMin": null,
+                "option": "cc",
+                "internalExp": null
+            },
+            "hard4-bow": {
+                "damageMax": null,
+                "damageMin": null,
+                "optionMax": null,
+                "optionMin": null,
+                "option": null,
+                "internalExp": null
+            },
+            "medium2-axe": {
+                "damageMax": 21,
+                "damageMin": 14,
+                "optionMax": 12.6,
+                "optionMin": 8.1,
+                "option": null,
+                "internalExp": null
+            },
+            "med3-sword": {
+                "damageMax": 17,
+                "damageMin": 11,
+                "optionMax": 36.5,
+                "optionMin": 25.0,
+                "option": "ce",
+                "internalExp": 520
+            },
+            "med2ex-spear": {
+                "damageMax": 11,
+                "damageMin": 7,
+                "optionMax": 64.4,
+                "optionMin": null,
+                "option": "ce",
+                "internalExp": 800
+            }
+        }
+    ]
+}
