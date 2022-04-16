@@ -1,9 +1,19 @@
 {
     "Weapons": [
         {
+            "reimei": {
+                "damageMax": 10,
+                "damageMin": 6,
+                "damBase": 9,
+                "optionMax": 25.8,
+                "optionMin": null,
+                "option": "cd",
+                "internalExp": 120
+            },
             "expert1-sword": {
                 "damageMax": 16,
                 "damageMin": 10,
+                "damBase": 14.5,
                 "optionMax": 22.6,
                 "optionMin": 14.6,
                 "option": "cc",
@@ -12,30 +22,43 @@
             "exp2-madou": {
                 "damageMax": 41,
                 "damageMin": 26,
+                "damBase": 37,
                 "optionMax": 5.6,
                 "optionMin": null,
                 "option": "cc",
                 "internalExp": null
             },
             "hard4-bow": {
-                "damageMax": null,
-                "damageMin": null,
-                "optionMax": null,
+                "damageMax": 29,
+                "damageMin": 18,
+                "damBase": 26,
+                "optionMax": 26.8,
                 "optionMin": null,
-                "option": null,
-                "internalExp": null
+                "option": "cd",
+                "internalExp": 720
             },
             "medium2-axe": {
                 "damageMax": 21,
                 "damageMin": 14,
+                "damBase": 19.5,
                 "optionMax": 12.6,
                 "optionMin": 8.1,
-                "option": null,
-                "internalExp": null
+                "option": "atk",
+                "internalExp": 360
+            },
+            "medium2-bow": {
+                "damageMax": 21,
+                "damageMin": 14,
+                "damBase": 19.5,
+                "optionMax": 16.7,
+                "optionMin": 8.1,
+                "option": "ce",
+                "internalExp": 360
             },
             "med3-sword": {
                 "damageMax": 17,
                 "damageMin": 11,
+                "damBase": 15,
                 "optionMax": 36.5,
                 "optionMin": 25.0,
                 "option": "ce",
@@ -44,6 +67,7 @@
             "med2ex-spear": {
                 "damageMax": 11,
                 "damageMin": 7,
+                "damBase": 10,
                 "optionMax": 64.4,
                 "optionMin": null,
                 "option": "ce",
