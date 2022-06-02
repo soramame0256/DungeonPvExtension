@@ -140,6 +140,8 @@ public class DungeonPvExtension {
         ClientCommandHandler.instance.registerCommand(new UpdateCmd());
         ClientCommandHandler.instance.registerCommand(new ChangeStorageNameCmd());
         ClientCommandHandler.instance.registerCommand(new QuickChatChangeMsgCmd());
+        ClientCommandHandler.instance.registerCommand(new ScreenRenderingBasicCmd());
+        ClientCommandHandler.instance.registerCommand(new WeaponLockCmd());
     }
     public void updateModFile() throws IOException, URISyntaxException {
         //https://blogs.osdn.jp/2017/09/24/runnable-jar.html

@@ -45,4 +45,14 @@ public class NumberUtilities {
     public static String toTime(Long l){
         return l/3600 + "h" + (l%3600)/60 + "m" + l%60 + "s";
     }
+    public static Boolean canParse(String s){
+        double ignored;
+        try{
+            ignored = Double.parseDouble(s);
+            return true;
+        } catch (NumberFormatException exception) {
+            return false;
+        }
+    }
+
 }

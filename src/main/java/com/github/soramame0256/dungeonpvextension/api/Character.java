@@ -1,18 +1,22 @@
 package com.github.soramame0256.dungeonpvextension.api;
 
 public enum Character {
-    TRAVELER("主人公", Element.WIND),
-    EMBER("エンバー", Element.FIRE),
-    PARPARA("パーパラ", Element.WATER),
-    RAZER("レーザー", Element.THUNDER),
-    RAIKA("ライカ", Element.THUNDER),
-    GRAY("グレー", Element.FIRE),
-    NONE("",Element.WIND)
+    TRAVELER("主人公", Element.WIND,60f),
+    EMBER("エンバー", Element.FIRE, 40f),
+    PARPARA("パーパラ", Element.WATER, 80f),
+    RAZER("レーザー", Element.THUNDER, 60f),
+    RAIKA("ライカ", Element.THUNDER,60f),
+    GRAY("グレー", Element.FIRE, 80f),
+    ARCTICA("アークティカ", Element.ICE, 70f),
+    TOPARA("トパーラ", Element.ROCK, 60f),
+    NONE("",Element.WIND, 0f);
     ;
     public String name;
     public Element element;
-    Character(String name, Element element){
+    public Float chargeMax;
+    Character(String name, Element element, Float chargeMax){
         this.name = name;
         this.element = element;
+        this.chargeMax = chargeMax;
     }
 }

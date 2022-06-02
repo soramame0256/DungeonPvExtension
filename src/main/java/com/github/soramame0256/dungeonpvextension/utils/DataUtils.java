@@ -1,9 +1,6 @@
 package com.github.soramame0256.dungeonpvextension.utils;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -92,8 +89,10 @@ public class DataUtils {
         return this.jsonObject;
     }
     public void flush() throws IOException {
+        String print = new GsonBuilder().serializeNulls().setPrettyPrinting().create()
+                .toJson(jsonObject);
         FileWriter fileWriter = new FileWriter(filePath);
-        fileWriter.write(this.jsonObject.toString());
+        fileWriter.write(print);
         fileWriter.flush();
         fileWriter.close();
     }

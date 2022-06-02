@@ -1,23 +1,24 @@
 package com.github.soramame0256.dungeonpvextension.listener;
 
 import com.github.soramame0256.dungeonpvextension.DungeonPvExtension;
+import com.github.soramame0256.dungeonpvextension.api.Character;
 import com.github.soramame0256.dungeonpvextension.api.Option;
-import com.github.soramame0256.dungeonpvextension.commands.QuickChatChangeMsgCmd;
 import com.github.soramame0256.dungeonpvextension.utils.ArrayUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.DataUtils;
 import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -32,22 +33,18 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.Color;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
-import static com.github.soramame0256.dungeonpvextension.utils.ItemUtilities.isLocked;
+import static com.github.soramame0256.dungeonpvextension.utils.ItemUtilities.*;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.commaSeparate;
 import static com.github.soramame0256.dungeonpvextension.utils.NumberUtilities.toTime;
 import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
@@ -59,11 +56,13 @@ public class EventListener {
     public static Boolean isPotCooldown = false;
     public static List<DpeTimer> dpeTimers = new ArrayList<>();
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
-    private static final double ARMOR_UPGRADE_CONSTANT = 1/3d;
+    private static final double ARMOR_UPGRADE_CONSTANT = 1 / 3d;
     private static Instant healthChatCooldown = null;
     private static Instant dungeonClearTime = null;
     private static JsonArray storageName;
     private static Instant quickChatCooldown = null;
+    private static final ResourceLocation RESOURCE_LOCATION_CIRCLE = new ResourceLocation(MOD_ID, "textures/circle.png");
+
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
         try {
@@ -77,32 +76,36 @@ public class EventListener {
         DataUtils dataUtils = getDataUtil();
         storageName = dataUtils.getJsonArrayData("StorageNames");
     }
+
     @SubscribeEvent
-    public void onUpdate(TickEvent.ClientTickEvent e){
-        if(e.phase == TickEvent.Phase.END && Minecraft.getMinecraft().player != null ){
+    public void onUpdate(TickEvent.ClientTickEvent e) {
+        if (e.phase == TickEvent.Phase.END && Minecraft.getMinecraft().player != null) {
             ScoreObjective so = Minecraft.getMinecraft().player.getWorldScoreboard().getObjectiveInDisplaySlot(1);
-            if(isEnable && inDP && so != null && so.getDisplayName().contains("Dungeon PvE") && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){
-                if(isPotCooldown && potCooldownStarts.toEpochMilli() + POT_COOLDOWN < Instant.now().toEpochMilli()){
+            if (isEnable && inDP && so != null && so.getDisplayName().contains("Dungeon PvE") && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())) {
+                if (isPotCooldown && potCooldownStarts.toEpochMilli() + POT_COOLDOWN < Instant.now().toEpochMilli()) {
                     isPotCooldown = false;
                     System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + false);
                 }
-                if(dpeTimers.size() != 0){
+                if (dpeTimers.size() != 0) {
                     AtomicReference<Integer> amount = new AtomicReference<>(0);
                     dpeTimers.forEach(dpeTimer -> {
-                        if (dpeTimer.update()){
-                            amount.set(amount.get()+1);
+                        if (dpeTimer.update()) {
+                            amount.set(amount.get() + 1);
                         }
                     });
                     if (amount.get() > 0) {
                         dpeTimers.subList(0, amount.get()).clear();
                     }
                 }
-            }else if(so != null && isEnable && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = so.getDisplayName().contains("Dungeon PvE");
-            }else if(!isEnable || ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())){inDP = false;
+            } else if (so != null && isEnable && !ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())) {
+                inDP = so.getDisplayName().contains("Dungeon PvE");
+            } else if (!isEnable || ArrayUtilities.isContain(disableIds, Minecraft.getMinecraft().player.getDisplayName().getUnformattedText())) {
+                inDP = false;
             }
         }
     }
-    public void dpeTimerDelete(String icon){
+
+    public void dpeTimerDelete(String icon) {
         DpeTimer dpeTimer1 = null;
         for (DpeTimer dpeTimer : dpeTimers) {
             if (dpeTimer.getIcon().equals(icon)) {
@@ -110,14 +113,105 @@ public class EventListener {
                 break;
             }
         }
-        if (dpeTimer1 != null){
+        if (dpeTimer1 != null) {
             dpeTimer1.delete();
         }
     }
+
+    public static void initializeDungeonItemViewer() {
+        DataUtils dataUtils = getDataUtil();
+        JsonArray screenRendering;
+        JsonObject dungeonItemViewer;
+        JsonObject rootJson = dataUtils.getRootJson();
+        if (!dataUtils.getRootJson().has("ScreenRendering")) {
+            screenRendering = new JsonArray();
+            dungeonItemViewer = new JsonObject();
+            JsonObject jsonObjectTemp = new JsonObject();
+            dungeonItemViewer.addProperty("height", 0d);
+            dungeonItemViewer.addProperty("width", 0d);
+            jsonObjectTemp.add("DungeonItemViewer", dungeonItemViewer);
+            screenRendering.add(jsonObjectTemp);
+            rootJson.add("ScreenRendering", screenRendering);
+            try {
+                dataUtils.flush();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onScreenRender(RenderGameOverlayEvent e) {
+        if (e.getType() == RenderGameOverlayEvent.ElementType.ALL) {
+            DataUtils dataUtils = getDataUtil();
+            int height = e.getResolution().getScaledHeight();
+            int width = e.getResolution().getScaledWidth();
+            double heightPercent, widthPercent;
+            initializeDungeonItemViewer();
+            heightPercent = dataUtils.getJsonArrayData("ScreenRendering").get(0).getAsJsonObject().get("DungeonItemViewer").getAsJsonObject().get("height").getAsDouble();
+            widthPercent = dataUtils.getJsonArrayData("ScreenRendering").get(0).getAsJsonObject().get("DungeonItemViewer").getAsJsonObject().get("width").getAsDouble();
+            int screenRenderingHeight = (int) (height * heightPercent);
+            int screenRenderingWidth = (int) (width * widthPercent);
+            if (!dataUtils.getJsonArrayData("ScreenRendering").get(0).getAsJsonObject().get("DungeonItemViewer").getAsJsonObject().get("active").getAsBoolean()) {
+                return;
+            }
+            ScoreObjective so = Minecraft.getMinecraft().world.getScoreboard().getObjectiveInDisplaySlot(1);
+            if (so != null) {
+                AtomicReference<Float> charaChargePercent1 = new AtomicReference<>(-1f);
+                AtomicReference<Float> charaChargePercent2 = new AtomicReference<>(-1f);
+                AtomicReference<Float> charaCharge1 = new AtomicReference<>(-1f);
+                AtomicReference<Float> charaCharge2 = new AtomicReference<>(-1f);
+                if (inDP) so.getScoreboard().getTeams().forEach(a -> {
+                    String str;
+                    if (a.getPrefix().contains("✴")) {
+                        str = clearColor(a.getSuffix().replaceAll("\\|", "")).trim();
+                        if (str.matches("[0-9]?[0-9](\\.[0-9])?")) {
+                            if (charaCharge1.get() == -1f){
+                                charaCharge1.set(Float.parseFloat(str));
+                            }else{
+                                charaCharge2.set(Float.parseFloat(str));
+                            }
+                        }
+                    }else {
+                        str = clearColor(a.getPrefix() + a.getSuffix()).trim();
+                        if (str.matches("\\[Lv[0-9]?[0-9]] .*")){
+                            for (Character character : Character.values()) {
+                                if (str.split(" ")[1].equals(character.name) || (character == Character.TRAVELER && str.split(" ")[1].equals(Minecraft.getMinecraft().player.getName()))){
+                                    if (charaChargePercent1.get() == -1f){
+                                        charaChargePercent1.set(charaCharge1.get()/character.chargeMax*100);
+                                    }else{
+                                        charaChargePercent2.set(charaCharge2.get()/character.chargeMax*100);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+                if (inDP) so.getScoreboard().getTeams().forEach(a -> {
+                    if (a.getPrefix().contains("✴")) {
+                        if (clearColor(a.getSuffix()).contains(charaCharge1.get().toString().replace(".0",""))){
+                            a.setSuffix(a.getSuffix().replace(charaCharge1.get().toString().replace(".0",""),charaChargePercent1.get().intValue() + "%"));
+                        }else if (clearColor(a.getSuffix()).contains(charaCharge2.get().toString().replace(".0",""))){
+                            a.setSuffix(a.getSuffix().replace(charaCharge2.get().toString().replace(".0",""),charaChargePercent2.get().intValue() + "%"));
+                        }
+                    }
+                });
+            }
+            for (ItemStack is : Minecraft.getMinecraft().player.inventory.mainInventory) {
+                if (!isDungeonItem(Arrays.asList(getLore(is)))) {
+                    continue;
+                }
+                Minecraft.getMinecraft().fontRenderer.drawString(is.getDisplayName() + "×" + is.getCount(), screenRenderingWidth, screenRenderingHeight, 0);
+                screenRenderingHeight += 10;
+            }
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onChatReceived(ClientChatReceivedEvent e){
+    public void onChatReceived(ClientChatReceivedEvent e) {
         String chatMsg = clearColor(e.getMessage().getUnformattedText());
-        if (!isUpToDate && (chatMsg.equals("サーバーに関する重要なお知らせなどはDiscordで行っているため、Discordに参加することを推奨しています。") || chatMsg.equals("We encourage you to join Discord because we have important server-related announcements on Discord."))){
+        if (!isUpToDate && (chatMsg.equals("サーバーに関する重要なお知らせなどはDiscordで行っているため、Discordに参加することを推奨しています。") || chatMsg.equals("We encourage you to join Discord because we have important server-related announcements on Discord."))) {
             Minecraft.getMinecraft().player.sendMessage(new TextComponentString("DungeonPvExtensionの最新バージョンが存在します! /dpeupdateで更新できます。"));
         }
         if (inDP) {
@@ -126,50 +220,100 @@ public class EventListener {
                 potCooldownStarts = Instant.now();
                 isPotCooldown = true;
                 System.out.println(String.valueOf(potCooldownStarts.toEpochMilli()) + true);
-            } else if (chatMsg.equals("60秒以内に爆弾を解除(討伐)せよ！")){
+            } else if (chatMsg.equals("60秒以内に爆弾を解除(討伐)せよ！")) {
                 dpeTimers.add(new DpeTimer(Instant.now(), 60000L, "§c☢"));
-            } else if (chatMsg.equals("爆弾の解除に成功した！")){
+            } else if (chatMsg.equals("爆弾の解除に成功した！")) {
                 dpeTimerDelete("§c☢");
-            } else if (chatMsg.equals("ロボットのHPを0にしてバクハツを止めろ！")){
+            } else if (chatMsg.equals("ロボットのHPを0にしてバクハツを止めろ！")) {
                 dpeTimers.add(new DpeTimer(Instant.now(), 8000L, "§c☼"));
-            } else if (chatMsg.equals("[天国の番人] いでよ幻影！")){
+            } else if (chatMsg.equals("[天国の番人] いでよ幻影！")) {
                 dpeTimers.add(new DpeTimer(Instant.now(), 60000L, "§c❂"));
-            } else if (chatMsg.equals("[煉獄の支配者] 個々の力を見せてみろ！") || chatMsg.equals("[❁ 煉獄の支配者] 個々の力を見せてみろ！")){
+            } else if (chatMsg.equals("[煉獄の支配者] 個々の力を見せてみろ！") || chatMsg.equals("[❁ 煉獄の支配者] 個々の力を見せてみろ！")) {
                 dpeTimers.add(new DpeTimer(Instant.now(), 30000L, "§c۞"));
-            } else if (chatMsg.equals("機械の討伐に成功した！")){
+            } else if (chatMsg.equals("機械の討伐に成功した！")) {
                 dpeTimerDelete("§c۞");
-            } else if (chatMsg.equals("誰かが世界樹の心臓部にテレポートされた。")){
+            } else if (chatMsg.equals("誰かが世界樹の心臓部にテレポートされた。")) {
                 dpeTimers.add(new DpeTimer(Instant.now(), 30000L, "§c✿"));
-            } else if (chatMsg.equals("心臓部からの脱出に成功した！")){
+            } else if (chatMsg.equals("心臓部からの脱出に成功した！")) {
                 dpeTimerDelete("§c✿");
-            } else if (chatMsg.equals("\u22D9 ダンジョンに転移します.. ")){
+            } else if (chatMsg.equals("\u22D9 ダンジョンに転移します.. ")) {
                 dungeonClearTime = Instant.now();
-            } else if (chatMsg.equals("8秒後にテレポートされます")){
+            } else if (chatMsg.equals("8秒後にテレポートされます")) {
                 ITextComponent textComponent = new TextComponentString("クリアタイム: " + toTime(Instant.now().getEpochSecond() - dungeonClearTime.getEpochSecond()));
                 Minecraft.getMinecraft().player.sendMessage(textComponent);
-            } else if (chatMsg.endsWith("秒後にダンジョン前に戻ります")){
+            } else if (chatMsg.endsWith("秒後にダンジョン前に戻ります")) {
                 int timer = 0;
-                try{
+                try {
                     timer = Integer.parseInt(chatMsg.replace("秒後にダンジョン前に戻ります", ""));
-                }catch (NumberFormatException exception){
+                } catch (NumberFormatException exception) {
                     //Minecraft.getMinecraft().player.sendMessage(new TextComponentString("[DungeonPvExtension] §cメッセージの分析中にエラーが発生しました。"));
                 }
-                dpeTimers.add(new DpeTimer(Instant.now(), timer* 1000L, "§d۩"));
-            } else if (chatMsg.equals("初期地点に戻ります")){
+                dpeTimers.add(new DpeTimer(Instant.now(), timer * 1000L, "§d۩"));
+            } else if (chatMsg.equals("初期地点に戻ります")) {
                 dpeTimerDelete("§d۩");
             }
 
         }
     }
+
     @SubscribeEvent
-    public void onMobDead(RenderLivingEvent.Pre<EntityLiving> e){
-        if (e.getEntity().getHealth() == 0){
-            if (clearColor(e.getEntity().getDisplayName().getUnformattedText()).equals("幻影")){
+    public void onMobDead(RenderLivingEvent.Pre<EntityLiving> e) {
+        if (e.getEntity().getHealth() == 0) {
+            if (clearColor(e.getEntity().getDisplayName().getUnformattedText()).equals("幻影")) {
                 dpeTimerDelete("§c❂");
-            }else if(clearColor(e.getEntity().getDisplayName().getUnformattedText()).equals("壊れた雪原の戦闘練習用ロボット")){
+            } else if (clearColor(e.getEntity().getDisplayName().getUnformattedText()).equals("壊れた雪原の戦闘練習用ロボット")) {
                 dpeTimerDelete("§c☼");
             }
         }
+    }
+    @SubscribeEvent
+    public void onInventoryClick(GuiScreenEvent.MouseInputEvent e) {
+//        Mouse.isButtonDown(2); //Middle Click
+        if (e.getGui() instanceof GuiChest) {
+            boolean toCancel = hasToCancelOnClick(e.getGui(), ((GuiChest) e.getGui()).getSlotUnderMouse());
+            e.setCanceled(toCancel);
+        }
+    }
+    @SubscribeEvent
+    public void onInventoryKeyInput(GuiScreenEvent.KeyboardInputEvent e){
+        if (e.getGui() instanceof GuiChest){
+            boolean toCancel = hasToCancelOnClick(e.getGui(),((GuiChest) e.getGui()).getSlotUnderMouse());
+            e.setCanceled(toCancel);
+        }
+    }
+    private boolean hasToCancelOnClick(GuiScreen gui,Slot slotIn){
+        if (gui instanceof GuiChest) {
+            // This method is called every time you click in a GuiContainer but slotIn will be null if you click outside of any slots
+            if (slotIn != null && slotIn.getStack() != null && HudUtilities.getCurrentGuiTitle().equals("解体したい防具・武器を入れてください")) {
+                try {
+                    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+                    ItemStack clickedItem = slotIn.getStack();
+                    DataUtils dataUtils = new DataUtils("itemlock.json");
+                    if (clickedItem.getTagCompound() != null) {
+                        if (dataUtils.getBooleanData(String.format("%040x", new BigInteger(1, sha256.digest(clickedItem.getTagCompound().toString().getBytes()))))) {
+                            return true;
+                        }
+                    }
+                    if (clearColor(slotIn.getStack().getDisplayName()).contains("解体を実行")){
+                        if(Minecraft.getMinecraft().player.openContainer instanceof ContainerChest) {
+                            for (int i=0;i<=7;i++){
+                                ItemStack is = ((ContainerChest) Minecraft.getMinecraft().player.openContainer).getLowerChestInventory().getStackInSlot(i);
+                                if (is.getTagCompound() != null) {
+                                    if (dataUtils.getBooleanData(String.format("%040x", new BigInteger(1, sha256.digest(is.getTagCompound().toString().getBytes()))))) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ;
+                    // Do stuff here
+                } catch (NoSuchAlgorithmException | IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return false;
     }
     @SubscribeEvent
     public void onToolTipRender(ItemTooltipEvent e) {

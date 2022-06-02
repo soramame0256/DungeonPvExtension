@@ -143,6 +143,22 @@ public class ItemUtilities {
         }
         return Integer.parseInt(str);
     }
+    public static Boolean isDungeonItem(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if(str.contains("ダンジョンアイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
+    }
+    public static Integer getDamageMin(Float damBase){
+        return Math.round(damBase*0.7f);
+    }
+    public static Integer getDamageMax(Float damBase){
+        return Math.round(damBase*1.1f);
+    }
     public static Integer getArmorLevelMax(ItemStack is){
         switch (getRarity(is)){
             case 3:
@@ -161,6 +177,9 @@ public class ItemUtilities {
             type = "防具アイテム";
         }else if(isWeapon(Arrays.asList(getLore(is)))){
             type = "武器アイテム";
+        }
+        if(type.equals("")){
+            return 0;
         }
         for (String s : getLore(is)) {
             if (clearColor(s).contains(type)){
