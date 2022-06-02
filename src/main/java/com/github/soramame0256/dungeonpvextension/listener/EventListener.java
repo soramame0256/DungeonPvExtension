@@ -165,11 +165,19 @@ public class EventListener {
                     String str;
                     if (a.getPrefix().contains("✴")) {
                         str = clearColor(a.getSuffix().replaceAll("\\|", "")).trim();
-                        if (str.matches("[0-9]?[0-9](\\.[0-9])?")) {
-                            if (charaCharge1.get() == -1f){
-                                charaCharge1.set(Float.parseFloat(str));
+                        if (str.matches("[0-9]?[0-9](\\.[0-9])?%?")) {
+                            if(!str.contains("%")){
+                                if (charaCharge1.get() == -1f){
+                                    charaCharge1.set(Float.parseFloat(str));
+                                }else{
+                                    charaCharge2.set(Float.parseFloat(str));
+                                }
                             }else{
-                                charaCharge2.set(Float.parseFloat(str));
+                                if (charaCharge1.get() == -1f){
+                                    charaCharge1.set(-0.99f);
+                                }else{
+                                    charaCharge2.set(-0.99f);
+                                }
                             }
                         }
                     }else {
@@ -189,7 +197,7 @@ public class EventListener {
                     }
                 });
                 if (inDP) so.getScoreboard().getTeams().forEach(a -> {
-                    if (a.getPrefix().contains("✴")) {
+                    if (a.getPrefix().contains("✴") && !clearColor(a.getSuffix()).contains("%")) {
                         if (clearColor(a.getSuffix()).contains(charaCharge1.get().toString().replace(".0",""))){
                             a.setSuffix(a.getSuffix().replace(charaCharge1.get().toString().replace(".0",""),charaChargePercent1.get().intValue() + "%"));
                         }else if (clearColor(a.getSuffix()).contains(charaCharge2.get().toString().replace(".0",""))){
