@@ -129,6 +129,7 @@ public class EventListener {
             JsonObject jsonObjectTemp = new JsonObject();
             dungeonItemViewer.addProperty("height", 0d);
             dungeonItemViewer.addProperty("width", 0d);
+            dungeonItemViewer.addProperty("active", true);
             jsonObjectTemp.add("DungeonItemViewer", dungeonItemViewer);
             screenRendering.add(jsonObjectTemp);
             rootJson.add("ScreenRendering", screenRendering);
