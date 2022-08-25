@@ -6,5 +6,5 @@ DungeonPvE内で/dpetoggleで起動できます
 potのクールダウン表記
 
 loreの改造 など。
-#ライブラリ
+# ライブラリ
 このmodはApache License, Version 2.0 のライセンスで配布されている成果物を含んでいます。
