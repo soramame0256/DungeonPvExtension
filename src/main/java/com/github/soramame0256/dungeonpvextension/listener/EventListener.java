@@ -73,6 +73,7 @@ public class EventListener {
     private static final Pattern CLEAR_TIME_DISPLAY_ON_CLEAR = Pattern.compile("クリアタイム: (?<sec>.*)秒.*");
     private static final ResourceLocation RESOURCE_LOCATION_CIRCLE = new ResourceLocation(MOD_ID, "textures/circle.png");
     private static final Map<String, List<String>> memo = new HashMap<>();
+    //private static final Toast toast = new Toast();
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
         try {
