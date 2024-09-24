@@ -9,8 +9,9 @@ public enum Character {
     GRAY("グレー", Element.FIRE, 80f),
     ARCTICA("アークティカ", Element.ICE, 70f),
     TOPARA("トパーラ", Element.ROCK, 60f),
+    SAFARA("サファーラ",Element.WATER, 50f),
     NONE("",Element.WIND, 0f);
-    ;
+
     public String name;
     public Element element;
     public Float chargeMax;
