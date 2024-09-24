@@ -43,7 +43,10 @@ public class NumberUtilities {
         return commaSeparate(s.doubleValue());
     }
     public static String toTime(Long l){
-        return l/3600 + "h" + (l%3600)/60 + "m" + l%60 + "s";
+        long hour = l/3600;
+        long min = (l%3600)/60;
+        long sec = l%60;
+        return (hour==0?"":hour+"h")+(min==0?"":min+"m")+(sec==0?"":sec+"s");
     }
     public static Boolean canParse(String s){
         double ignored;

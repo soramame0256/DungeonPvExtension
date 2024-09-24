@@ -6,14 +6,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.soramame0256.dungeonpvextension.utils.StringUtilities.clearColor;
+import static com.github.soramame0256.dungeonpvextension.utils.ItemUtilities.HashAlgorithm.SHA512;
 
 public class ItemUtilities {
+    private static Map<ItemStack, String> hashes = new HashMap<>();
     public static void changeName(ItemStack i, String s){
         NBTTagCompound NBT1 = i.getTagCompound();
         NBTTagCompound NBT2 = i.getSubCompound("display");
@@ -119,8 +120,8 @@ public class ItemUtilities {
     public static Integer getWeaponLevel(ItemStack is){
         String str = "0";
         for (String s : getLore(is)) {
-            if (clearColor(s).contains("❃ 強化レベル:")){
-                str = clearColor(s).split(" ")[3];
+            if (StringUtilities.clearColor(s).contains("❃ 強化レベル:")){
+                str = StringUtilities.clearColor(s).split(" ")[3];
             }
         }
         return Integer.parseInt(str);
@@ -128,8 +129,8 @@ public class ItemUtilities {
     public static Integer getWeaponLevelMax(ItemStack is){
         String str = "0";
         for (String s : getLore(is)) {
-            if (clearColor(s).contains("❃ 強化レベル:")){
-                str = clearColor(s).split(" ")[5];
+            if (StringUtilities.clearColor(s).contains("❃ 強化レベル:")){
+                str = StringUtilities.clearColor(s).split(" ")[5];
             }
         }
         return Integer.parseInt(str);
@@ -137,17 +138,27 @@ public class ItemUtilities {
     public static Integer getArmorLevel(ItemStack is){
         String str = "0";
         for (String s : getLore(is)) {
-            if (clearColor(s).contains("❃ 強化値:")){
-                str = clearColor(s).split(" ")[3].replace("+","");
+            if (StringUtilities.clearColor(s).contains("❃ 強化値:")){
+                str = StringUtilities.clearColor(s).split(" ")[3].replace("+","");
             }
         }
         return Integer.parseInt(str);
     }
-    public static Boolean isDungeonItem(List<String> lore){
+    public static boolean isDungeonItem(List<String> lore){
         AtomicReference<Boolean> is = new AtomicReference<>();
         is.set(false);
         lore.forEach(str ->{
             if(str.contains("ダンジョンアイテム")){
+                is.set(true);
+            }
+        });
+        return is.get();
+    }
+    public static boolean isPotItem(List<String> lore){
+        AtomicReference<Boolean> is = new AtomicReference<>();
+        is.set(false);
+        lore.forEach(str ->{
+            if(str.contains("回復アイテム")){
                 is.set(true);
             }
         });
@@ -167,9 +178,62 @@ public class ItemUtilities {
                 return 16;
             case 5:
                 return 20;
+
             default:
                 return 0;
         }
+    }
+
+    private static String toHash(String text, HashAlgorithm algorithm) {
+        String hashAlgorithm = "";
+        if (algorithm==HashAlgorithm.MD5) {
+            hashAlgorithm = "MD5";
+        } else if (algorithm==HashAlgorithm.SHA1) {
+            hashAlgorithm = "SHA-1";
+        } else if (algorithm==HashAlgorithm.SHA256) {
+            hashAlgorithm = "SHA-256";
+        } else {
+            hashAlgorithm = "SHA-512";
+        }
+
+        StringBuffer sb = new StringBuffer();
+        try {
+            MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
+            byte[] cipherBytes = md.digest(text.getBytes());
+
+            for (int i=0; i<cipherBytes.length; i++) {
+                sb.append(String.format("%02x", cipherBytes[i]&0xff));
+            }
+        } catch (NoSuchAlgorithmException ex1) {
+            System.out.println("ハッシュアルゴリズム名が不正です。");
+        } catch (NullPointerException ex2) {
+            System.out.println("ハッシュアルゴリズム名が指定されていません。");
+        }
+
+        return sb.toString();
+    }
+    public static String itemToHash(ItemStack is){
+        if(hashes.containsKey(is)){
+            return hashes.get(is);
+        }
+        String hash;
+        if(is.hasTagCompound())
+            hash = toHash(is.getTagCompound().toString(), SHA512);
+        else
+            hash = toHash(is.getTranslationKey(), SHA512);
+        hashes.put(is, hash);
+        return hash;
+    }
+    public static String getArtifactGroupId(ItemStack is){
+        if(is.getTagCompound() != null && is.getTagCompound().hasKey("artiSet")){
+            return is.getTagCompound().getString("artiSet");
+        }
+        return "";
+    }
+    public static String getId(ItemStack is){
+        if(isArmor(Arrays.asList(getLore(is)))) return getArtifactGroupId(is);
+        if(isWeapon(Arrays.asList(getLore(is)))) return (is.getTagCompound() != null && is.getTagCompound().hasKey("id")) ? (is.getTagCompound().getString("id")) : "";
+        return "";
     }
     public static Integer getRarity(ItemStack is){
         String type = "";
@@ -182,7 +246,7 @@ public class ItemUtilities {
             return 0;
         }
         for (String s : getLore(is)) {
-            if (clearColor(s).contains(type)){
+            if (StringUtilities.clearColor(s).contains(type)){
                 String r = s.split(" ")[1];
                 if(r.contains("§b")){
                     return 3;
@@ -194,5 +258,11 @@ public class ItemUtilities {
             }
         }
         return 0;
+    }
+    enum HashAlgorithm {
+        MD5,
+        SHA1,
+        SHA256,
+        SHA512
     }
 }

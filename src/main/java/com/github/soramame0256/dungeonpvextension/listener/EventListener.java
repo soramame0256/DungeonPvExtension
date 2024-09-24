@@ -8,12 +8,16 @@ import com.github.soramame0256.dungeonpvextension.utils.DataUtils;
 import com.github.soramame0256.dungeonpvextension.utils.HudUtilities;
 import com.github.soramame0256.dungeonpvextension.utils.ItemUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -41,6 +45,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.CONFIG_TYPES.disableIds;
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.*;
@@ -53,16 +59,20 @@ import static java.lang.Math.round;
 public class EventListener {
     public static Instant potCooldownStarts;
     public static final long POT_COOLDOWN = 3000;
-    public static Boolean isPotCooldown = false;
+    public static boolean isPotCooldown = false;
+    public static boolean isAutoDieEnabled = false;
     public static List<DpeTimer> dpeTimers = new ArrayList<>();
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
     private static final double ARMOR_UPGRADE_CONSTANT = 1 / 3d;
     private static Instant healthChatCooldown = null;
     private static Instant dungeonClearTime = null;
+    public static boolean isHealthShowFeatureEnabled = false;
     private static JsonArray storageName;
     private static Instant quickChatCooldown = null;
+    private static final Pattern CLEAR_TIME_DISPLAY = Pattern.compile(". 最速クリアタイム: (?<sec>.*)秒");
+    private static final Pattern CLEAR_TIME_DISPLAY_ON_CLEAR = Pattern.compile("クリアタイム: (?<sec>.*)秒.*");
     private static final ResourceLocation RESOURCE_LOCATION_CIRCLE = new ResourceLocation(MOD_ID, "textures/circle.png");
-
+    private static final Map<String, List<String>> memo = new HashMap<>();
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
         try {
@@ -75,6 +85,18 @@ public class EventListener {
     public static void reload() throws IOException {
         DataUtils dataUtils = getDataUtil();
         storageName = dataUtils.getJsonArrayData("StorageNames");
+        memo.clear();
+        List<String> memos;
+        if(dataUtils.getRootJson().has("ItemMemo")) {
+            for (Map.Entry<String, JsonElement> itemMemo : dataUtils.getRootJson().get("ItemMemo").getAsJsonObject().entrySet()) {
+                memos = new ArrayList<>();
+                for (JsonElement jsonElement : itemMemo.getValue().getAsJsonArray()) {
+                    memos.add(jsonElement.getAsString());
+                }
+                memo.put(itemMemo.getKey(), memos);
+            }
+        }
+
     }
 
     @SubscribeEvent
@@ -143,7 +165,7 @@ public class EventListener {
 
     @SubscribeEvent
     public void onScreenRender(RenderGameOverlayEvent e) {
-        if (e.getType() == RenderGameOverlayEvent.ElementType.ALL) {
+        if (e.getType() == RenderGameOverlayEvent.ElementType.ALL  && inDP) {
             DataUtils dataUtils = getDataUtil();
             int height = e.getResolution().getScaledHeight();
             int width = e.getResolution().getScaledWidth();
@@ -166,53 +188,88 @@ public class EventListener {
                     String str;
                     if (a.getPrefix().contains("✴")) {
                         str = clearColor(a.getSuffix().replaceAll("\\|", "")).trim();
-                        if (str.matches("[0-9]?[0-9](\\.[0-9])?%?")) {
-                            if(!str.contains("%")){
-                                if (charaCharge1.get() == -1f){
-                                    charaCharge1.set(Float.parseFloat(str));
-                                }else{
-                                    charaCharge2.set(Float.parseFloat(str));
-                                }
-                            }else{
-                                if (charaCharge1.get() == -1f){
-                                    charaCharge1.set(-0.99f);
-                                }else{
-                                    charaCharge2.set(-0.99f);
-                                }
-                            }
-                        }
-                    }else {
-                        str = clearColor(a.getPrefix() + a.getSuffix()).trim();
-                        if (str.matches("\\[Lv[0-9]?[0-9]] .*")){
-                            for (Character character : Character.values()) {
-                                if (str.split(" ")[1].equals(character.name) || (character == Character.TRAVELER && str.split(" ")[1].equals(Minecraft.getMinecraft().player.getName()))){
-                                    if (charaChargePercent1.get() == -1f){
-                                        charaChargePercent1.set(charaCharge1.get()/character.chargeMax*100);
-                                    }else{
-                                        charaChargePercent2.set(charaCharge2.get()/character.chargeMax*100);
-                                    }
-                                    break;
-                                }
+                        if (str.matches("[0-9]+(\\.[0-9])?")) {
+                            if (a.getName().equals("line13")) {
+                                charaCharge1.set(Float.parseFloat(str));
+                            } else {
+                                charaCharge2.set(Float.parseFloat(str));
                             }
                         }
                     }
                 });
+                if (inDP) so.getScoreboard().getTeams().forEach(a ->{
+                    String str;
+                    str = clearColor(a.getPrefix() + a.getSuffix()).trim();
+                    if (str.matches("\\[Lv[0-9]?[0-9]] .*")) {
+                        for (Character character : Character.values()) {
+                            if (str.split(" ")[1].equals(character.name) || (character == Character.TRAVELER && str.split(" ")[1].equals(Minecraft.getMinecraft().player.getName()))) {
+                                if (a.getName().equals("line14")) {
+                                    charaChargePercent1.set(charaCharge1.get() / character.chargeMax * 100);
+                                } else {
+                                    charaChargePercent2.set(charaCharge2.get() / character.chargeMax * 100);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                );
                 if (inDP) so.getScoreboard().getTeams().forEach(a -> {
                     if (a.getPrefix().contains("✴") && !clearColor(a.getSuffix()).contains("%")) {
-                        if (clearColor(a.getSuffix()).contains(charaCharge1.get().toString().replace(".0",""))){
-                            a.setSuffix(a.getSuffix().replace(charaCharge1.get().toString().replace(".0",""),charaChargePercent1.get().intValue() + "%"));
-                        }else if (clearColor(a.getSuffix()).contains(charaCharge2.get().toString().replace(".0",""))){
+                        if (a.getName().equals("line13")) {
+                            a.setSuffix(a.getSuffix().replace(charaCharge1.get().toString().replace(".0", ""), charaChargePercent1.get().intValue() + "%"));
+                        }else if (a.getName().equals("line11")) {
                             a.setSuffix(a.getSuffix().replace(charaCharge2.get().toString().replace(".0",""),charaChargePercent2.get().intValue() + "%"));
                         }
                     }
                 });
             }
+            Map<String, Integer> pots = new HashMap<>();
             for (ItemStack is : Minecraft.getMinecraft().player.inventory.mainInventory) {
                 if (!isDungeonItem(Arrays.asList(getLore(is)))) {
-                    continue;
+                    if(isPotItem(Arrays.asList(getLore(is)))){
+                        pots.put(is.getDisplayName(), pots.getOrDefault(is.getDisplayName(),0)+1);
+                        continue;
+                    }else{
+                        continue;
+                    }
                 }
                 Minecraft.getMinecraft().fontRenderer.drawString(is.getDisplayName() + "×" + is.getCount(), screenRenderingWidth, screenRenderingHeight, 0);
                 screenRenderingHeight += 10;
+            }
+            if(!pots.isEmpty()){
+                for(Map.Entry<String, Integer> ent : pots.entrySet()){
+                    Minecraft.getMinecraft().fontRenderer.drawString(ent.getKey() + "×" + ent.getValue(), screenRenderingWidth, screenRenderingHeight, 0);
+                    screenRenderingHeight += 10;
+                }
+            }
+            if(isHealthShowFeatureEnabled) {
+                int x = 1;
+                int y = 100;
+                int cnt = 0;
+                if (Minecraft.getMinecraft().getConnection() != null) {
+                    for (EntityPlayer p : Minecraft.getMinecraft().world.playerEntities) {
+                        if (!p.getDisplayNameString().matches("([a-zA-Z_0-9]{3,16})")) continue;
+                        float healthPercent = p.getHealth() / p.getMaxHealth();
+                        int healthP = (int) (healthPercent * 100);
+                        //Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation(MOD_ID,"textures/gauge.png"));
+                        //GlStateManager.tex
+                        GlStateManager.popMatrix();
+                        GlStateManager.enableAlpha();
+                        GlStateManager.enableBlend();
+                        Minecraft.getMinecraft().fontRenderer.drawString(p.getDisplayNameString(), x, y, 0xffffff);
+                        y += Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT;
+                        Gui.drawRect(x, y, x + 100, y + Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT, 0xffff0000);
+                        Gui.drawRect(x + 100 - healthP, y, x + 100, y + Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT, 0xff00ff00);
+                        Minecraft.getMinecraft().fontRenderer.drawString(((float) round(healthPercent * 1000)) / 10 + "%", x + 10, y, 0xffffff);
+                        y += Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT;
+                        GlStateManager.disableAlpha();
+                        GlStateManager.disableBlend();
+                        GlStateManager.pushMatrix();
+                        cnt++;
+                        if (cnt == 5) break;
+                    }
+                }
             }
         }
     }
@@ -224,6 +281,7 @@ public class EventListener {
             Minecraft.getMinecraft().player.sendMessage(new TextComponentString("DungeonPvExtensionの最新バージョンが存在します! /dpeupdateで更新できます。"));
         }
         if (inDP) {
+            Matcher mat;
             //&1[♥ +114&1]
             if (chatMsg.startsWith("[❤ +") && chatMsg.endsWith("]")) {
                 potCooldownStarts = Instant.now();
@@ -260,6 +318,42 @@ public class EventListener {
                 dpeTimers.add(new DpeTimer(Instant.now(), timer * 1000L, "§d۩"));
             } else if (chatMsg.equals("初期地点に戻ります")) {
                 dpeTimerDelete("§d۩");
+            } else if ((mat = CLEAR_TIME_DISPLAY.matcher(chatMsg)).matches()){
+                String strSec = mat.group("sec");
+                long sec = (long)Double.parseDouble(strSec);
+                double doubleSec = Double.parseDouble(strSec);
+                long ms = Math.round((doubleSec-sec)*100);
+                System.out.println(doubleSec);
+                System.out.println(sec);
+                System.out.println(doubleSec-sec);
+                System.out.println(ms);
+                System.out.println(toTime(sec));
+                String time = toTime(sec) + (ms==0 ? "" : ms);
+                time = time.
+                        replaceAll("h","時間").
+                        replaceAll("m","分").
+                        replaceAll("s","秒");
+                e.setMessage(new TextComponentString(e.getMessage().getFormattedText().replaceAll(strSec+"秒",time)));
+            } else if((mat = CLEAR_TIME_DISPLAY_ON_CLEAR.matcher(chatMsg)).matches()){
+                String strSec = mat.group("sec");
+                long sec = (long)Double.parseDouble(strSec);
+                double doubleSec = Double.parseDouble(strSec);
+                long ms = Math.round((doubleSec-sec)*100);
+                String time = toTime(sec) + (ms==0 ? "" : ms);
+                time = time.
+                        replaceAll("h","時間").
+                        replaceAll("m","分").
+                        replaceAll("s","秒");
+                e.setMessage(new TextComponentString(e.getMessage().getFormattedText().replaceAll(strSec+"秒",time)));
+            } else if((chatMsg.equals("[黒ニ染マリシ者] 黒は万物の色...消えるはずがないのに...") && isAutoDieEnabled)){
+                new Thread(()->{
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    Minecraft.getMinecraft().player.sendChatMessage("/die");
+                }).start();
             }
 
         }
@@ -330,6 +424,7 @@ public class EventListener {
             List<String> newLore = new ArrayList<>();
             boolean nextSub = false;
             boolean customLore = false; //+--------------------+から+--------------------+の間=true
+            boolean printId = false;
             List<String> oldLore;
             oldLore = e.getToolTip();
             oldLore.set(0, e.getToolTip().get(0) + (isLocked(e.getItemStack()) ? " §a[Locked]" : ""));
@@ -346,10 +441,13 @@ public class EventListener {
                         newLore.add(" §f解体入手エッセンス: §a+" + commaSeparate(e.getItemStack().getTagCompound().getInteger("internalExp")));
                         newLore.add(" §f解体入手ゴールド: §a+" + commaSeparate(round(e.getItemStack().getTagCompound().getInteger("internalExp") * 0.6)));
                         customLore = false;
+                        printId = true;
                     } else {
                         customLore = true;
                     }
                     newLore.add(s);
+                    if(printId && e.getFlags().isAdvanced()) newLore.add("§8dungeonpve:" + getId(e.getItemStack()));
+                    printId = false;
                 } else if (!s.equals(e.getItemStack().getDisplayName())) {
                     newLore.add(s);
                 }
@@ -429,6 +527,7 @@ public class EventListener {
                         }
                     }
                 }
+                if(s.matches("§8minecraft:.*")) newLore.add("§8dungeonpve:" + getId(e.getItemStack()));
                 newLore.add(s);
             }
 
@@ -483,6 +582,13 @@ public class EventListener {
                 }
                 e.getToolTip().clear();
                 e.getToolTip().addAll(newLore);
+            }
+        }
+        String hash = itemToHash(e.getItemStack());
+        if(inDP && memo.containsKey(hash) && !memo.get(hash).isEmpty()){
+            e.getToolTip().add("-----memo-----");
+            for (int i = 0; i < memo.get(hash).size(); i++) {
+                e.getToolTip().add(i+1 + ": " + memo.get(hash).get(i));
             }
         }
     }

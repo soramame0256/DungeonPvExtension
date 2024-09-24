@@ -1,19 +1,13 @@
 package com.github.soramame0256.dungeonpvextension.commands;
 
-import com.github.soramame0256.dungeonpvextension.listener.EventListener;
 import com.github.soramame0256.dungeonpvextension.utils.DataUtils;
 import com.google.gson.JsonArray;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import org.lwjgl.input.Keyboard;
-
-import java.awt.*;
-import java.io.IOException;
 
 import static com.github.soramame0256.dungeonpvextension.DungeonPvExtension.getDataUtil;
 
