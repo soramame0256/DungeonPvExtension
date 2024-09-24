@@ -10,6 +10,7 @@ public enum Character {
     ARCTICA("アークティカ", Element.ICE, 70f),
     TOPARA("トパーラ", Element.ROCK, 60f),
     SAFARA("サファーラ",Element.WATER, 50f),
+    TURQUOIRE("ターコイラ",Element.WIND, 75f),
     NONE("",Element.WIND, 0f);
 
     public String name;
