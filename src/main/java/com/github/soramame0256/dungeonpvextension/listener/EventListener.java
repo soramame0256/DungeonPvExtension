@@ -489,7 +489,7 @@ public class EventListener {
                 int currentGrowthCount = level / WEAPON_SUB_STATUS_FACTOR;
                 double min=subStat,max=subStat;
                 for (int i=Math.min(currentGrowthCount+1,maxGrowthCount); i<=maxGrowthCount;i++){
-                    newLore.add("§7 " + i*WEAPON_SUB_STATUS_FACTOR + ": " + (min=(min+getBaseSubStatus(e.getItemStack())*WEAPON_SUB_STATUS_MINIMUM)) + "~" + (max=(max+getBaseSubStatus(e.getItemStack())*WEAPON_SUB_STATUS_MAXIMUM)));
+                    newLore.add("§7 " + i*WEAPON_SUB_STATUS_FACTOR + ": " + round(10*(min=(min+getBaseSubStatus(e.getItemStack())*WEAPON_SUB_STATUS_MINIMUM)))/10d + "~" + round(10*(max=(max+getBaseSubStatus(e.getItemStack())*WEAPON_SUB_STATUS_MAXIMUM)))/10d);
                 }
             }
             e.getToolTip().clear();
