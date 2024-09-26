@@ -64,6 +64,7 @@ public class EventListener {
     public static List<DpeTimer> dpeTimers = new ArrayList<>();
     private static final double WEAPON_UPGRADE_CONSTANT = 0.15d;
     private static final double ARMOR_UPGRADE_CONSTANT = 1 / 3d;
+    private static final int WEAPON_SUB_STATUS_FACTOR = 3;
     private static Instant healthChatCooldown = null;
     private static Instant dungeonClearTime = null;
     public static boolean isHealthShowFeatureEnabled = false;
@@ -73,6 +74,9 @@ public class EventListener {
     private static final Pattern CLEAR_TIME_DISPLAY_ON_CLEAR = Pattern.compile("クリアタイム: (?<sec>.*)秒.*");
     private static final ResourceLocation RESOURCE_LOCATION_CIRCLE = new ResourceLocation(MOD_ID, "textures/circle.png");
     private static final Map<String, List<String>> memo = new HashMap<>();
+    private static final double WEAPON_SUB_STATUS_MAXIMUM = 0.18d;
+    private static final double WEAPON_SUB_STATUS_MINIMUM = 0.12d;
+
     //private static final Toast toast = new Toast();
     public EventListener() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -426,12 +430,26 @@ public class EventListener {
             boolean nextSub = false;
             boolean customLore = false; //+--------------------+から+--------------------+の間=true
             boolean printId = false;
+            double subStat = 0;
+            double subStatGrowth;
+            double subStatGrowthPercent;
             List<String> oldLore;
             oldLore = e.getToolTip();
             oldLore.set(0, e.getToolTip().get(0) + (isLocked(e.getItemStack()) ? " §a[Locked]" : ""));
             for (String s : oldLore) {
-                if (nextSub) {
-                    newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getDouble("baseSubStat") + ")");
+                if (nextSub & e.getItemStack().getTagCompound().hasKey("baseSubStat")) {
+                    newLore.add(s + " §7(" + getBaseSubStatus(e.getItemStack()) + ")");
+                    for (Option o : Option.values()) {
+                        if (clearColor(s).contains(o.icon)) {
+                            if (clearColor(s).contains("%") && o.name.contains("%")) {
+                                subStat = Double.parseDouble(clearColor(s).split(" ")[3].replace("+", "").replace("%", ""));
+                            } else if (!clearColor(s).contains("%") && !o.name.contains("%")) {
+                                subStat = Double.parseDouble(clearColor(s).split(" ")[3].replace("+", ""));
+                            }
+                        }
+                    }
+                    subStatGrowth = subStat-getBaseSubStatus(e.getItemStack());
+                    subStatGrowthPercent = (double)(round(subStatGrowth * 100 / getBaseSubStatus(e.getItemStack()))) /100d;
                     nextSub = false;
                 } else if (s.contains("基礎攻撃力") && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("baseAtk")) {
                     newLore.add(s + " §7(" + e.getItemStack().getTagCompound().getInteger("baseAtk") + ")");
@@ -466,6 +484,13 @@ public class EventListener {
                     totalCost += cost;
                 }
                 newLore.add("§7 合計: " + commaSeparate(totalCost));
+                newLore.add("§7サブステータス振れ幅");
+                int maxGrowthCount = maxLevel / WEAPON_SUB_STATUS_FACTOR;
+                int currentGrowthCount = level / WEAPON_SUB_STATUS_FACTOR;
+                double min=subStat,max=subStat;
+                for (int i=Math.min(currentGrowthCount+1,maxGrowthCount); i<=maxGrowthCount;i++){
+                    newLore.add("§7 " + i*WEAPON_SUB_STATUS_FACTOR + ": " + (min=(min+getBaseSubStatus(e.getItemStack())*WEAPON_SUB_STATUS_MINIMUM)) + "~" + (max=(max+getBaseSubStatus(e.getItemStack())*WEAPON_SUB_STATUS_MAXIMUM)));
+                }
             }
             e.getToolTip().clear();
             e.getToolTip().addAll(newLore);

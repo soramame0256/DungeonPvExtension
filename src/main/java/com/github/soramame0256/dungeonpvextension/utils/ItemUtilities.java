@@ -135,6 +135,10 @@ public class ItemUtilities {
         }
         return Integer.parseInt(str);
     }
+    public static double getBaseSubStatus(ItemStack is){
+        if (!is.hasTagCompound()) return 0;
+        return is.getTagCompound().hasKey("baseSubStat") ? is.getTagCompound().getDouble("baseSubStat") : 0;
+    }
     public static Integer getArmorLevel(ItemStack is){
         String str = "0";
         for (String s : getLore(is)) {
