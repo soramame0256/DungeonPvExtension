@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -323,6 +324,12 @@ public class EventListener {
                 dpeTimers.add(new DpeTimer(Instant.now(), timer * 1000L, "§d۩"));
             } else if (chatMsg.equals("初期地点に戻ります")) {
                 dpeTimerDelete("§d۩");
+            } else if (chatMsg.contains("[カエラ] 冷徹なる刃！")) {
+                Minecraft.getMinecraft().ingameGUI.displayTitle("§4§l!", "", 1, 1, 1);
+                Minecraft.getMinecraft().player.playSound(SoundEvents.BLOCK_ANVIL_LAND, 1, 1);
+            } else if (chatMsg.contains("[カエラ] 凍てつく運命を受け入れよ！")){
+                Minecraft.getMinecraft().ingameGUI.displayTitle("§c§l!", "", 1, 1, 1);
+                Minecraft.getMinecraft().player.playSound(SoundEvents.BLOCK_ANVIL_LAND, 1, 1);
             } else if ((mat = CLEAR_TIME_DISPLAY.matcher(chatMsg)).matches()){
                 String strSec = mat.group("sec");
                 long sec = (long)Double.parseDouble(strSec);
