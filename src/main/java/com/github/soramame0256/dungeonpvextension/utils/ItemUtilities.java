@@ -52,6 +52,13 @@ public class ItemUtilities {
             return false;
         }
     }
+    public static boolean isUntradeable(ItemStack i){
+        if(i.getTagCompound() != null && i.getTagCompound().hasKey("Untradable")){
+            return i.getTagCompound().getInteger("Untradable") == 1;
+        } else{
+            return false;
+        }
+    }
     public static boolean isArmor(List<String> lore){
         AtomicReference<Boolean> is = new AtomicReference<>();
         is.set(false);

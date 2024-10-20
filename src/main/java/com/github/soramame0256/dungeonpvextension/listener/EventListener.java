@@ -442,7 +442,7 @@ public class EventListener {
             double subStatGrowthPercent;
             List<String> oldLore;
             oldLore = e.getToolTip();
-            oldLore.set(0, e.getToolTip().get(0) + (isLocked(e.getItemStack()) ? " §a[Locked]" : ""));
+            oldLore.set(0, e.getToolTip().get(0) + (isLocked(e.getItemStack()) ? " §a[Locked]" : "") + (isUntradeable(e.getItemStack()) ? " §4[Untradeable]" : ""));
             for (String s : oldLore) {
                 if (nextSub & e.getItemStack().getTagCompound().hasKey("baseSubStat")) {
                     newLore.add(s + " §7(" + getBaseSubStatus(e.getItemStack()) + ")");
@@ -509,6 +509,7 @@ public class EventListener {
             Map<Option, Double> options = new HashMap<>();
             int ignore = 3;
             oldLore = e.getToolTip();
+            oldLore.set(0, e.getToolTip().get(0) + (isLocked(e.getItemStack()) ? " §a[Locked]" : "") + (isUntradeable(e.getItemStack()) ? " §4[Untradeable]" : ""));
             for (String s : oldLore) {
                 if (clearColor(s).equals("+--------------------+")) {
                     if (customLore && e.getItemStack().getTagCompound() != null && e.getItemStack().getTagCompound().hasKey("internalExp")) {
