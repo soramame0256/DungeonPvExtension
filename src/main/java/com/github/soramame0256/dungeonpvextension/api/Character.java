@@ -11,6 +11,7 @@ public enum Character {
     TOPARA("トパーラ", Element.ROCK, 60f),
     SAFARA("サファーラ",Element.WATER, 50f),
     TURQUOIRE("ターコイラ",Element.WIND, 90f),
+    LUMIA("ルミア",Element.FIRE,60f),
     NONE("",Element.WIND, 0f);
 
     public String name;
